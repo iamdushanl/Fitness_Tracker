@@ -1,0 +1,42 @@
+# GitOps starter pipeline.
+# Weeks 10–11 you'll grow this: check the front end, then build & push the
+# backend image and deploy to AWS. Start small — one green check is a win.
+
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      # --- Front end (uncomment when frontend/ exists) ---
+      # - name: Set up Node
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: 20
+      # - name: Install & build front end
+      #   working-directory: frontend
+      #   run: |
+      #     npm ci
+      #     npm run build
+
+      - name: Placeholder check
+        run: echo "Pipeline is wired up. Add real checks in Week 10."
+
+  # --- Added in Week 11: build the backend image and push/deploy to AWS ---
+  # deploy-backend:
+  #   needs: check
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Build image
+  #       run: docker build -t fitness-backend ./backend
+  #     # ... configure AWS credentials, push to ECR, deploy to App Runner/ECS ...
