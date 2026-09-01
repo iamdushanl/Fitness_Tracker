@@ -36,4 +36,8 @@ and a containerised backend that ships to AWS.
 2. Copy `.env.example` to `.env` and keep it secret.
 3. Fill in `docs/SPEC.md`. Ask your agent to review it before building.
 
+## Decisions
+1. **Repo layout:** We are keeping the monorepo structure because the frontend, backend, and documentation stay together in one repository and share one history.
+2. **Agent autonomy:** For Week 1, I will review every diff before accepting AI-generated changes.
+
 _Everyone builds the same kind of app; your architecture is your own._
