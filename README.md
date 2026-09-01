@@ -6,6 +6,10 @@ and a containerised backend that ships to AWS.
 
 > **Golden rule:** you may let AI write the code, but never ship what you can't explain.
 
+## About me
+- **Name:** Dushan Liyanage (`iamdushanl`)
+- **Project:** I am building a personal fitness tracker to log daily workouts, track personal records, and monitor weekly fitness goals over time.
+
 ## Where things live
 ```
 .
