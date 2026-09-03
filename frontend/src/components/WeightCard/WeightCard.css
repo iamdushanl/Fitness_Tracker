@@ -1,0 +1,47 @@
+.weight-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+}
+
+.weight-card__icon {
+  font-size: 2rem;
+}
+
+.weight-card__content {
+  display: flex;
+  flex-direction: column;
+}
+
+.weight-card__value {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.weight-card__label {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  margin-top: 0.15rem;
+}
+
+.weight-card__change {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 0.3rem;
+  color: var(--text-secondary);
+}
+
+.weight-card__change--loss {
+  color: var(--success);
+}
+
+.weight-card__change--gain {
+  color: var(--primary);
+}

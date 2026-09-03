@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+/* ── Design Tokens ── */
+:root {
+  /* Typography */
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Outfit', 'Inter', sans-serif;
+
+  /* Colors — Dark Mode */
+  --bg: hsl(225, 20%, 8%);
+  --surface: hsl(225, 18%, 12%);
+  --surface-elevated: hsla(225, 18%, 14%, 0.85);
+  --surface-hover: hsl(225, 18%, 16%);
+  --surface-sunken: hsl(225, 20%, 7%);
+  --border: hsl(225, 15%, 20%);
+
+  --text-primary: hsl(220, 15%, 95%);
+  --text-secondary: hsl(220, 10%, 70%);
+  --text-tertiary: hsl(220, 8%, 50%);
+
+  --primary: hsl(220, 90%, 60%);
+  --primary-alpha: hsla(220, 90%, 60%, 0.12);
+  --gradient-primary: linear-gradient(135deg, hsl(220, 90%, 55%), hsl(260, 80%, 60%));
+
+  --success: hsl(150, 70%, 45%);
+  --success-alpha: hsla(150, 70%, 45%, 0.12);
+  --danger: hsl(0, 75%, 60%);
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px hsla(0, 0%, 0%, 0.3);
+  --shadow-md: 0 4px 12px hsla(0, 0%, 0%, 0.4);
+  --shadow-lg: 0 8px 24px hsla(0, 0%, 0%, 0.5);
+}
+
+/* ── Reset & Base ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+button {
+  font-family: var(--font-body);
+}
+
+input,
+textarea,
+select {
+  font-family: var(--font-body);
+}
+
+/* ── Utilities ── */
+.page-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+  flex: 1;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .page-container {
+    padding: 1rem;
+  }
+}

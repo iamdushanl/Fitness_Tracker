@@ -1,0 +1,88 @@
+.exercise-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 720px;
+}
+
+.exercise-details__back-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.exercise-details__back-link:hover {
+  opacity: 0.8;
+}
+
+.exercise-details__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.exercise-details__category {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  width: fit-content;
+}
+
+.exercise-details__category--strength {
+  background: hsla(280, 70%, 55%, 0.15);
+  color: hsl(280, 70%, 55%);
+}
+
+.exercise-details__category--cardio {
+  background: hsla(150, 70%, 45%, 0.15);
+  color: hsl(150, 70%, 45%);
+}
+
+.exercise-details__category--flexibility {
+  background: hsla(35, 80%, 50%, 0.15);
+  color: hsl(35, 80%, 50%);
+}
+
+.exercise-details__name {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.exercise-details__muscle {
+  font-size: 0.9rem;
+  color: var(--text-tertiary);
+}
+
+.exercise-details__section-title {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 0.75rem 0;
+}
+
+.exercise-details__text {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.exercise-details__not-found {
+  text-align: center;
+  padding: 3rem;
+}
+
+.exercise-details__not-found-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+}

@@ -1,0 +1,87 @@
+.progress-page {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.progress-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.progress-page__title {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.progress-page__subtitle {
+  color: var(--text-tertiary);
+  font-size: 0.9rem;
+  margin: 0;
+  max-width: 500px;
+}
+
+.progress-page__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.progress-page__charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .progress-page__charts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.progress-page__section-title {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 1rem 0;
+}
+
+.progress-page__logs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.progress-page__log-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+}
+
+.progress-page__log-date {
+  color: var(--text-tertiary);
+  font-size: 0.8rem;
+  min-width: 120px;
+}
+
+.progress-page__log-details {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.progress-page__log-notes {
+  color: var(--text-tertiary);
+  font-style: italic;
+  font-size: 0.8rem;
+  margin-left: auto;
+}

@@ -1,0 +1,32 @@
+.streak-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+}
+
+.streak-card__icon {
+  font-size: 2rem;
+}
+
+.streak-card__content {
+  display: flex;
+  flex-direction: column;
+}
+
+.streak-card__value {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.streak-card__label {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  margin-top: 0.15rem;
+}

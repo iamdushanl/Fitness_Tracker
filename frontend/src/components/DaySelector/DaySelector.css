@@ -1,0 +1,73 @@
+.day-selector {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.25rem 0;
+}
+
+.day-selector__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.5rem 0.75rem;
+  min-width: 3.2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.day-selector__day:hover {
+  border-color: var(--primary);
+  background: var(--surface-hover);
+}
+
+.day-selector__day--selected {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.day-selector__day--selected .day-selector__label,
+.day-selector__day--selected .day-selector__num {
+  color: white;
+}
+
+.day-selector__day--done {
+  border-color: var(--success);
+}
+
+.day-selector__day--rest {
+  opacity: 0.5;
+}
+
+.day-selector__label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+}
+
+.day-selector__num {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.day-selector__dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.day-selector__day--selected .day-selector__dot {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.day-selector__day--done .day-selector__dot {
+  background: var(--success);
+}
