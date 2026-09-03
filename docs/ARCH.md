@@ -287,6 +287,116 @@ The frontend is developed and tested locally before being deployed to Vercel. Su
 
   **Why rejected:** A single starting-weight column cannot support a weight-trend chart, which the progress dashboard is expected to show.
 
+## 10. Frontend Screens & Component Structure
+
+### Screens
+
+The V1 frontend will contain five main screens:
+
+#### Dashboard
+
+Shows a **snapshot of the current state**: today's scheduled workout, this week's completion rate, current weight, and workout streak. Provides quick navigation to the Workout and Progress screens. This screen answers "what should I do today?" and "how is this week going?"
+
+Week 4 uses mock data.
+
+#### Create Plan
+
+Collects the user's name, age, height, weight, experience level, and fitness goal via a profile form. In Week 4 this screen uses mock data only. In later weeks, the information will be stored through the application's authentication and database layer.
+
+#### Workout
+
+Displays the user's scheduled workout for the selected day. Shows prescribed exercises and their targets. Allows the user to begin recording workout performance by entering actual sets, reps, weight, duration, or distance.
+
+Week 4 uses mock data.
+
+#### Exercise Details
+
+Displays exercise category, muscle group, text instructions, and an embedded YouTube demonstration video. Uses the exercise seed library defined in the specification.
+
+Week 4 uses mock exercise data.
+
+#### Progress
+
+Displays **historical trends and charts**: weekly completion-rate history over time, weight trend from `weight_history`, and cumulative workout streak. This screen answers "how am I doing over weeks and months?" Unlike Dashboard (current snapshot), Progress focuses on longitudinal data.
+
+Week 4 uses mock data.
+
+### Navigation
+
+React Router will be used for client-side navigation.
+
+| Route           | Screen           |
+| --------------- | ---------------- |
+| `/`             | Dashboard        |
+| `/create-plan`  | Create Plan      |
+| `/workout`      | Workout          |
+| `/exercise/:id` | Exercise Details |
+| `/progress`     | Progress         |
+
+> **Note — Landing page:** A public landing page with sign-in will be added in a future iteration. When implemented, `/` will serve the landing page for unauthenticated users and redirect to the Dashboard for authenticated users.
+
+### Route Protection
+
+All routes listed above are protected and require authentication. Unauthenticated users will be redirected to the sign-in flow. Route guards are implemented using a React Router wrapper component (`<ProtectedRoute>`) that checks the user's Supabase authentication state before rendering the target screen.
+
+### Component Structure
+
+```
+components/
+├── Navbar              # Global navigation bar
+├── ProtectedRoute      # Auth guard wrapper for React Router
+├── WorkoutCard         # Workout summary card (Dashboard, Workout)
+├── ExerciseCard        # Exercise overview card (Workout, Exercise Details)
+├── WorkoutLogForm      # Input form for recording actual sets/reps/weight/duration/distance
+├── ProfileForm         # Onboarding form for user profile and goal selection
+├── YouTubeEmbed        # Responsive YouTube video embed
+├── DaySelector         # Day picker for navigating the weekly schedule
+├── NudgeBanner         # Adaptation nudge / encouragement message banner
+├── ProgressSummary     # Snapshot of completion rate + streak (Dashboard)
+├── CompletionChart     # Weekly completion-rate trend chart (Progress)
+├── WeightChart         # Weight trend line chart (Progress)
+├── StreakCard          # Current streak display
+├── WeeklyCompletion    # This week's completion rate display
+└── WeightCard          # Current weight display
+
+pages/
+├── Dashboard
+├── CreatePlan
+├── Workout
+├── ExerciseDetails
+└── Progress
+
+data/
+└── mock/
+    ├── users.js         # Mock user profile
+    ├── exercises.js     # Mock exercise seed library
+    ├── plans.js         # Mock workout plans and plan exercises
+    ├── logs.js          # Mock workout logs
+    └── weightHistory.js # Mock weight history entries
+```
+
+The `pages/` directory contains complete application screens, while reusable UI elements are placed in `components/`. Temporary Week 4 mock data is organized as separate modules under `data/mock/` to mirror the data model and keep individual files manageable.
+
+### Component-to-Screen Mapping
+
+| Component          | Dashboard | Create Plan | Workout | Exercise Details | Progress |
+| ------------------ | :-------: | :---------: | :-----: | :--------------: | :------: |
+| `Navbar`           |     ✓     |      ✓      |    ✓    |        ✓         |    ✓     |
+| `ProtectedRoute`   |     ✓     |      ✓      |    ✓    |        ✓         |    ✓     |
+| `WorkoutCard`      |     ✓     |             |    ✓    |                  |          |
+| `ExerciseCard`     |           |             |    ✓    |        ✓         |          |
+| `WorkoutLogForm`   |           |             |    ✓    |                  |          |
+| `ProfileForm`      |           |      ✓      |         |                  |          |
+| `YouTubeEmbed`     |           |             |         |        ✓         |          |
+| `DaySelector`      |           |             |    ✓    |                  |          |
+| `NudgeBanner`      |     ✓     |             |         |                  |          |
+| `ProgressSummary`  |     ✓     |             |         |                  |          |
+| `CompletionChart`  |           |             |         |                  |    ✓     |
+| `WeightChart`      |           |             |         |                  |    ✓     |
+| `StreakCard`       |     ✓     |             |         |                  |    ✓     |
+| `WeeklyCompletion` |     ✓     |             |         |                  |    ✓     |
+| `WeightCard`       |     ✓     |             |         |                  |    ✓     |
+
 ### How to use this file with your AI agent
 
 1. Design the sections above yourself; the agent can suggest, but you decide.
