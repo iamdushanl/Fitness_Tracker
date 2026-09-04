@@ -59,3 +59,40 @@
   font-size: 0.95rem;
   margin: 0;
 }
+
+.create-plan__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-lg);
+  animation: scaleIn 0.2s ease;
+}
+
+.create-plan__error-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.create-plan__error-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.create-plan__error-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--danger);
+}
+
+.create-plan__error-text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+

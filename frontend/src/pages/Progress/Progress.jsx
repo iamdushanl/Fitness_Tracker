@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { mockPlanExercises } from '../../data/mock/plans';
-import { getExerciseById } from '../../data/mock/exercises';
+import { fetchActivePlan } from '../../lib/plans';
+import { getExerciseById } from '../../lib/exercises';
+import { fetchUserProfile, fetchWeightHistory } from '../../lib/userProfile';
 import { fetchWorkoutLogs } from '../../lib/workoutLogs';
-import { mockWeightHistory, getCurrentWeight, getWeightChange } from '../../data/mock/weightHistory';
 import CompletionChart from '../../components/CompletionChart/CompletionChart';
 import WeightChart from '../../components/WeightChart/WeightChart';
 import StreakCard from '../../components/StreakCard/StreakCard';
@@ -12,27 +12,54 @@ import StateScreen from '../../components/StateScreen/StateScreen';
 import './Progress.css';
 
 export default function Progress() {
+  const [profile, setProfile] = useState(null);
+  const [weightHistory, setWeightHistory] = useState([]);
+  const [planExercises, setPlanExercises] = useState([]);
   const [workoutLogs, setWorkoutLogs] = useState([]);
-  const [logsLoading, setLogsLoading] = useState(true);
-  const [logsError, setLogsError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const loadLogs = useCallback(async () => {
-    setLogsLoading(true);
-    setLogsError(null);
-    const { data, error } = await fetchWorkoutLogs();
-    if (error) {
-      console.error('Supabase error loading workout logs:', error);
-      setLogsError(error.message || 'Failed to load workout logs');
+  const loadProgressData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [profileRes, weightRes, planRes, logsRes] = await Promise.all([
+        fetchUserProfile(),
+        fetchWeightHistory(),
+        fetchActivePlan(),
+        fetchWorkoutLogs(),
+      ]);
+
+      if (profileRes.error) {
+        console.error('Supabase error loading user profile:', profileRes.error);
+      }
+      if (weightRes.error) {
+        console.error('Supabase error loading weight history:', weightRes.error);
+      }
+      if (planRes.error) {
+        console.error('Supabase error loading active plan:', planRes.error);
+      }
+      if (logsRes.error) {
+        console.error('Supabase error loading workout logs:', logsRes.error);
+      }
+
+      setProfile(profileRes.data);
+      setWeightHistory(weightRes.data ?? []);
+      setPlanExercises(planRes.data?.planExercises ?? []);
+      setWorkoutLogs(logsRes.data ?? []);
+    } catch (err) {
+      console.error('Failed to load progress data:', err);
+      setError(err.message || 'Failed to load progress data');
+    } finally {
+      setLoading(false);
     }
-    setWorkoutLogs(data);
-    setLogsLoading(false);
   }, []);
 
   useEffect(() => {
-    loadLogs();
-  }, [loadLogs]);
+    loadProgressData();
+  }, [loadProgressData]);
 
-  // Mock weekly completion data (historical trend)
+  // Historical weekly trend (mock trend baseline per ARCH.md §4)
   const completionData = [
     { week: 'W1', rate: 85 },
     { week: 'W2', rate: 92 },
@@ -41,21 +68,39 @@ export default function Progress() {
     { week: 'W5', rate: 47 },
   ];
 
-  // Current week completion
-  const totalExercises = mockPlanExercises.length;
+  // Current week completion rate
+  const totalExercises = planExercises.length;
   const loggedExercises = workoutLogs.length;
-  const currentRate = totalExercises > 0 ? Math.round((loggedExercises / totalExercises) * 100) : 0;
+  const currentRate =
+    totalExercises > 0
+      ? Math.round((loggedExercises / totalExercises) * 100)
+      : 0;
 
-  // Weight chart data
-  const weightData = mockWeightHistory.map((wh) => ({
+  // Weight chart & stats
+  const weightData = weightHistory.map((wh) => ({
     date: wh.recorded_at,
     weight_kg: wh.weight_kg,
   }));
 
+  const currentWeight =
+    weightHistory.length > 0
+      ? weightHistory[weightHistory.length - 1].weight_kg
+      : profile?.weight_kg ?? null;
+
+  const weightChange =
+    weightHistory.length > 1
+      ? Number(
+          (
+            weightHistory[weightHistory.length - 1].weight_kg -
+            weightHistory[0].weight_kg
+          ).toFixed(1)
+        )
+      : 0;
+
   const streak = 4;
 
   /* ── Loading state ── */
-  if (logsLoading) {
+  if (loading) {
     return (
       <div className="progress-page" id="progress-page">
         <StateScreen variant="loading" text="Loading your progress…" />
@@ -64,14 +109,14 @@ export default function Progress() {
   }
 
   /* ── Error state ── */
-  if (logsError) {
+  if (error) {
     return (
       <div className="progress-page" id="progress-page">
         <StateScreen
           variant="error"
           title="Couldn't load progress data"
-          text={logsError}
-          onRetry={loadLogs}
+          text={error}
+          onRetry={loadProgressData}
         />
       </div>
     );
@@ -89,7 +134,7 @@ export default function Progress() {
 
       <div className="progress-page__stats">
         <WeeklyCompletion rate={currentRate} />
-        <WeightCard currentWeight={getCurrentWeight()} weightChange={getWeightChange()} />
+        <WeightCard currentWeight={currentWeight} weightChange={weightChange} />
         <StreakCard streak={streak} />
       </div>
 
@@ -110,8 +155,8 @@ export default function Progress() {
             />
           ) : (
             workoutLogs.map((log) => {
-              const pe = mockPlanExercises.find((p) => p.id === log.plan_exercise_id);
-              const exercise = pe ? getExerciseById(pe.exercise_id) : null;
+              const pe = planExercises.find((p) => p.id === log.plan_exercise_id);
+              const exercise = pe?.exercise || getExerciseById(pe?.exercise_id);
               return (
                 <div key={log.id} className="progress-page__log-item">
                   <div className="progress-page__log-date">
@@ -142,3 +187,4 @@ export default function Progress() {
     </div>
   );
 }
+

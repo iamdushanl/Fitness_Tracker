@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { getExerciseById } from '../../data/mock/exercises';
+import { getExerciseById } from '../../lib/exercises';
 import './WorkoutCard.css';
 
 /**
@@ -10,7 +10,7 @@ import './WorkoutCard.css';
  *   isToday     — boolean, highlights the card
  *   completedCount — how many exercises have been logged
  */
-export default function WorkoutCard({ date, exercises, isToday = false, completedCount = 0 }) {
+export default function WorkoutCard({ date, exercises = [], isToday = false, completedCount = 0 }) {
   const dayName = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' });
   const shortDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const total = exercises.length;
@@ -29,7 +29,7 @@ export default function WorkoutCard({ date, exercises, isToday = false, complete
 
       <ul className="workout-card__exercises">
         {exercises.map((pe) => {
-          const ex = getExerciseById(pe.exercise_id);
+          const ex = pe.exercise || getExerciseById(pe.exercise_id);
           return (
             <li key={pe.id} className="workout-card__exercise">
               <span className={`workout-card__category workout-card__category--${ex?.category}`}>

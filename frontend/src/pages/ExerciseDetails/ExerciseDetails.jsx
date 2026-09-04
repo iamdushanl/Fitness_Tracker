@@ -1,11 +1,35 @@
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getExerciseById } from '../../data/mock/exercises';
+import { fetchExerciseById, getExerciseById } from '../../lib/exercises';
 import YouTubeEmbed from '../../components/YouTubeEmbed/YouTubeEmbed';
+import StateScreen from '../../components/StateScreen/StateScreen';
 import './ExerciseDetails.css';
 
 export default function ExerciseDetails() {
   const { id } = useParams();
-  const exercise = getExerciseById(id);
+  const [exercise, setExercise] = useState(() => getExerciseById(id));
+  const [loading, setLoading] = useState(!exercise);
+
+  useEffect(() => {
+    let active = true;
+    fetchExerciseById(id).then(({ data }) => {
+      if (active && data) {
+        setExercise(data);
+      }
+      if (active) setLoading(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="exercise-details" id="exercise-details-page">
+        <StateScreen variant="loading" text="Loading exercise details…" />
+      </div>
+    );
+  }
 
   if (!exercise) {
     return (
@@ -46,3 +70,4 @@ export default function ExerciseDetails() {
     </div>
   );
 }
+
