@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { getWeekSchedule, mockPlanExercises } from '../../data/mock/plans';
+import { useState, useEffect, useCallback } from 'react';
+import { getWeekSchedule } from '../../data/mock/plans';
 import { getExerciseById } from '../../data/mock/exercises';
-import { mockWorkoutLogs, isExerciseLogged } from '../../data/mock/logs';
+import { fetchWorkoutLogs, insertWorkoutLog } from '../../lib/workoutLogs';
 import DaySelector from '../../components/DaySelector/DaySelector';
 import ExerciseCard from '../../components/ExerciseCard/ExerciseCard';
 import WorkoutLogForm from '../../components/WorkoutLogForm/WorkoutLogForm';
+import StateScreen from '../../components/StateScreen/StateScreen';
 import './Workout.css';
 
 export default function Workout() {
@@ -16,7 +17,25 @@ export default function Workout() {
 
   const [selectedDate, setSelectedDate] = useState(allDates[0]);
   const [loggingExerciseId, setLoggingExerciseId] = useState(null);
-  const [localLogs, setLocalLogs] = useState(mockWorkoutLogs);
+  const [localLogs, setLocalLogs] = useState([]);
+  const [logsLoading, setLogsLoading] = useState(true);
+  const [logsError, setLogsError] = useState(null);
+
+  const loadLogs = useCallback(async () => {
+    setLogsLoading(true);
+    setLogsError(null);
+    const { data, error } = await fetchWorkoutLogs();
+    if (error) {
+      console.error('Supabase error loading workout logs:', error);
+      setLogsError(error.message || 'Failed to load workout logs');
+    }
+    setLocalLogs(data);
+    setLogsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadLogs();
+  }, [loadLogs]);
 
   const exercises = weekSchedule[selectedDate] ?? [];
   const isRestDay = exercises.length === 0;
@@ -31,15 +50,38 @@ export default function Workout() {
     exerciseCounts[date] = { total: dayExercises.length, completed };
   }
 
-  const handleSaveLog = (logData) => {
-    const newLog = {
-      id: `wl-${Date.now()}`,
-      user_id: 'u-001',
-      ...logData,
-    };
-    setLocalLogs((prev) => [...prev, newLog]);
+  const handleSaveLog = async (logData) => {
+    const { data: newLog, error } = await insertWorkoutLog(logData);
+    if (error) {
+      console.error('Supabase error saving workout log:', error);
+      throw error;
+    }
+    setLocalLogs((prev) => [newLog, ...prev]);
     setLoggingExerciseId(null);
   };
+
+  /* ── Loading state ── */
+  if (logsLoading) {
+    return (
+      <div className="workout-page" id="workout-page">
+        <StateScreen variant="loading" text="Loading your workouts…" />
+      </div>
+    );
+  }
+
+  /* ── Error state ── */
+  if (logsError) {
+    return (
+      <div className="workout-page" id="workout-page">
+        <StateScreen
+          variant="error"
+          title="Couldn't load workouts"
+          text={logsError}
+          onRetry={loadLogs}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="workout-page" id="workout-page">
@@ -61,7 +103,14 @@ export default function Workout() {
         exerciseCounts={exerciseCounts}
       />
 
-      {isRestDay ? (
+      {Object.keys(weekSchedule).length === 0 ? (
+        <StateScreen
+          variant="empty"
+          icon="🏋️"
+          title="No workouts yet"
+          text="You don't have any scheduled workouts yet. Create a plan to get started!"
+        />
+      ) : isRestDay ? (
         <div className="workout-page__rest" id="rest-day-message">
           <span className="workout-page__rest-icon">😌</span>
           <h2 className="workout-page__rest-title">Rest Day</h2>
@@ -107,3 +156,4 @@ export default function Workout() {
     </div>
   );
 }
+

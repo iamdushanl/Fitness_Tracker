@@ -74,9 +74,15 @@
   min-width: 120px;
 }
 
-.progress-page__log-details {
+.progress-page__log-exercise {
   font-weight: 600;
   color: var(--text-primary);
+  min-width: 140px;
+}
+
+.progress-page__log-details {
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
 .progress-page__log-notes {

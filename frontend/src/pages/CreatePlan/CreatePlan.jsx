@@ -33,7 +33,7 @@ export default function CreatePlan() {
           <span className="create-plan__success-icon">🎉</span>
           <h2 className="create-plan__success-title">Plan Generated!</h2>
           <p className="create-plan__success-text">
-            Your <strong>{profile.fitness_goal.replace('_', ' ')}</strong> plan for
+            Your <strong>{profile.fitness_goal.replaceAll('_', ' ')}</strong> plan for
             a <strong>{profile.experience_level}</strong> is ready.
             Redirecting to your workout…
           </p>
