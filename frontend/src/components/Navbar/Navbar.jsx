@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom';
+import AuthButton from '../AuthButton/AuthButton';
 import './Navbar.css';
 
 export default function Navbar() {
@@ -35,6 +36,9 @@ export default function Navbar() {
           </NavLink>
         </li>
       </ul>
+
+      <AuthButton />
     </nav>
   );
 }
+
