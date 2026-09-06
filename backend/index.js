@@ -24,6 +24,23 @@ app.use(express.json());
 const { requireAuth } = require('./middleware/auth');
 
 /**
+ * GET /
+ * API Root Information & Service Discovery
+ */
+app.get('/', (req, res) => {
+  res.json({
+    name: 'Fitness Tracker API',
+    status: 'online',
+    version: '1.0.0',
+    environment: config.nodeEnv,
+    endpoints: {
+      health: '/health',
+      weekly_summary: '/summary/week',
+    },
+  });
+});
+
+/**
  * GET /health
  * Public liveness/health probe
  */
@@ -91,6 +108,14 @@ app.get('/summary/week', requireAuth, async (req, res) => {
       message: 'Failed to compute weekly summary.',
     });
   }
+});
+
+// 404 Not Found Catch-All Handler (JSON response)
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Cannot ${req.method} ${req.originalUrl}`,
+  });
 });
 
 // Start server if invoked directly
