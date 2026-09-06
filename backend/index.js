@@ -95,9 +95,27 @@ app.get('/summary/week', requireAuth, async (req, res) => {
 
 // Start server if invoked directly
 if (require.main === module) {
-  app.listen(config.port, () => {
+  const server = app.listen(config.port, () => {
     console.log(`Backend server running on http://localhost:${config.port} (${config.nodeEnv})`);
   });
+
+  // Graceful shutdown handling for Docker and orchestrator signals
+  const shutdown = (signal) => {
+    console.log(`Received ${signal}. Shutting down gracefully...`);
+    server.close(() => {
+      console.log('HTTP server closed.');
+      process.exit(0);
+    });
+
+    // Force exit if connections do not close within 10 seconds
+    setTimeout(() => {
+      console.error('Forced shutdown due to timeout.');
+      process.exit(1);
+    }, 10000).unref();
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
 module.exports = { app, config };

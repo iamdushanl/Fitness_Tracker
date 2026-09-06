@@ -1,0 +1,28 @@
+# Node modules - prevent host modules from overwriting container modules
+node_modules
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Sensitive environment configuration files
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+!.env.example
+
+# Source control & IDE files
+.git
+.gitignore
+.idea
+.vscode
+
+# Test files and coverage
+tests
+coverage
+*.test.js
+*.spec.js
