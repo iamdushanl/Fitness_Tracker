@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { fetchUserProfile, fetchWeightHistory } from '../../lib/userProfile';
 import { fetchActivePlan } from '../../lib/plans';
 import { fetchWorkoutLogs } from '../../lib/workoutLogs';
+import { calculateDailyStreak } from '../../lib/streak';
 import WorkoutCard from '../../components/WorkoutCard/WorkoutCard';
 import ProgressSummary from '../../components/ProgressSummary/ProgressSummary';
 import WeightCard from '../../components/WeightCard/WeightCard';
@@ -21,9 +22,11 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const loadDashboardData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const loadDashboardData = useCallback(async (showSpinner = false) => {
+    if (showSpinner) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const [profileRes, weightRes, planRes, logsRes] = await Promise.all([
         fetchUserProfile(),
@@ -73,8 +76,8 @@ export default function Dashboard() {
       ? Math.round((loggedExercises / totalPlanExercises) * 100)
       : 0;
 
-  // Mock streak for V1 per ARCH.md §4
-  const streak = 4;
+  // Calculate daily streak dynamically from logged workout timestamps
+  const streak = calculateDailyStreak(workoutLogs.map((l) => l.performed_at));
 
   // Weight stats
   const currentWeight =
@@ -121,7 +124,7 @@ export default function Dashboard() {
           variant="error"
           title="Couldn't load your data"
           text={error}
-          onRetry={loadDashboardData}
+          onRetry={() => loadDashboardData(true)}
         />
       </div>
     );

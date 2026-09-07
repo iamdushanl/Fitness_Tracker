@@ -17,9 +17,11 @@ export default function Workout() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const loadData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const loadData = useCallback(async (showSpinner = false) => {
+    if (showSpinner) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const [planRes, logsRes] = await Promise.all([
         fetchActivePlan(),
@@ -103,7 +105,7 @@ export default function Workout() {
           variant="error"
           title="Couldn't load workouts"
           text={error}
-          onRetry={loadData}
+          onRetry={() => loadData(true)}
         />
       </div>
     );

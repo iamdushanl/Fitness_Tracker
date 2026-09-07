@@ -1,13 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-
-const AuthContext = createContext({
-  user: null,
-  session: null,
-  loading: true,
-  signInWithGoogle: () => {},
-  signOut: () => {},
-});
+import { AuthContext } from './authContextDef';
 
 /**
  * Provides auth state to the component tree.
@@ -64,15 +57,4 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-/**
- * Convenience hook — throws if used outside `<AuthProvider>`.
- */
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (ctx === undefined) {
-    throw new Error('useAuth must be used within an <AuthProvider>');
-  }
-  return ctx;
 }

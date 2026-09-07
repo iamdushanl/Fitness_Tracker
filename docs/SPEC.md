@@ -84,78 +84,88 @@ The system recalculates the next week's plan every **Sunday night** (or when the
 
 ## 6. Sign-in
 
-_This app uses Google (Gmail) login via Supabase. Answer:_
+This app uses Google (Gmail) login via Supabase Auth (`@supabase/supabase-js`).
 
-- What can a signed-out visitor see (if anything)?
-  1.  View the public landing page.
-  2.  Understand what the application does.
-  3.  Sign in using Google.
+- **What can a signed-out visitor see?**
+  1. The public landing page (`<Landing />`) with brand presentation, key feature cards, and value proposition.
+  2. Clear call-to-action button ("Sign in with Google") to initiate OAuth redirect.
+  3. No private user data, workouts, logs, or profile information are exposed or queryable without an active session.
 
-- What is private to the signed-in user?
-  1. All personalized data and workout schedules.
-  2. Workout history and progress.
+- **What is private to the signed-in user?**
+  1. User profile and physical metrics (`users` table).
+  2. Workout plans and scheduled daily exercises (`workout_plans`, `plan_exercises`).
+  3. Historical workout performance logs (`workout_logs`) and weigh-in trends (`weight_history`).
+  4. Authoritative weekly completion metrics and streaks.
+
+---
 
 ## 7. Key user journeys
 
 1. **Create my workout plan:**
-   Sign in
+   Sign in with Google
    → Enter name, age, height (cm), weight (kg)
    → Select experience level (beginner / intermediate / advanced)
    → Select fitness goal (weight loss / muscle gain / general fitness / endurance)
    → Submit
-   → System looks up the matching template from the 12-template lookup table
-   → Display a 7-day workout schedule with prescribed exercises and targets
-   → User can browse each exercise's instructions and YouTube demo video
+   → System matches the 12-template lookup table for the selected goal & level
+   → Inserts user profile, weight record, workout plan, and 7-day scheduled plan exercises into Supabase with immutable `initial_target_*` baseline columns
+   → Displays the 7-day schedule with prescribed exercises and targets
+   → User can browse each exercise's text instructions and embedded YouTube demo video
 
 2. **Complete and record a workout:**
-   Open today's workout
-   → See the list of prescribed exercises with targets
-   → Tap an exercise
-   → View instructions + YouTube demo
+   Open today's workout on the Workout screen
+   → See the list of prescribed exercises with target sets, reps, weight, duration, or distance
+   → Select an exercise to view text instructions and responsive YouTube demonstration video
    → Perform the exercise
-   → Enter actual results: sets × reps × weight (strength) **or** duration × distance (cardio)
-   → Save → Exercise is marked complete
-   → After all exercises, the workout is saved with a timestamp
-   → Workout appears in history
+   → Enter actual results in `WorkoutLogForm`: sets × reps × weight (strength) **or** duration × distance (cardio)
+   → Save → Exercise log is persisted to Supabase `workout_logs`
+   → Completed exercises display a green check badge and completed status
+   → Workout progress immediately updates in history and dashboard
 
 3. **Monitor and adapt:**
    Open progress dashboard
-   → See weekly completion-rate chart and current weight
-   → See current streak
-   → At the end of the week, system evaluates completion rate
-   → System applies adaptation rules (§5a) to generate next week's plan
-   → User sees updated schedule with adjusted targets
-   → If targets changed, a brief explanation is shown (e.g. "Targets increased 10% — great week!")
+   → See weekly completion-rate chart and current weight trend
+   → See daily and weekly workout streaks
+   → At the end of the week, backend evaluates completion rate
+   → Backend applies adaptation rules (§5a) to generate next week's plan (±10% targets within 0.5×–1.5× guardrails)
+   → User sees updated schedule with adjusted targets and explanatory nudge banners
+
+---
 
 ## 8. Success criteria
 
-- [ ] I can enter my profile (name, age, height, weight), select an experience level and fitness goal, and receive a 7-day workout schedule.
-- [ ] I can record the actual sets × reps × weight (or duration × distance) I completed for each exercise, even when it differs from the plan, and see the record after refreshing.
-- [ ] I can view my workout history, weekly completion-rate trend, and current streak.
-- [ ] If I complete ≥ 90% of my prescribed exercises in a week, next week's targets are visibly higher.
-- [ ] If I complete < 30% or log nothing, the app shows an encouragement message and prompts me to review my goal.
-- [ ] I can access text instructions and a YouTube demonstration video for each scheduled exercise.
-- [ ] A signed-in user can only access their own data (verified via Supabase RLS — a second user cannot see or modify my records).
-- [ ] If I enter invalid profile data (e.g. height = 0, weight = -5), the app shows a validation error and does not save.
+- [x] I can enter my profile (name, age, height, weight), select an experience level and fitness goal, and receive a 7-day workout schedule.
+- [x] I can record the actual sets × reps × weight (or duration × distance) I completed for each exercise, even when it differs from the plan, and see the record after refreshing.
+- [x] I can view my workout history, weekly completion-rate trend, and current streak.
+- [x] I can access text instructions and a YouTube demonstration video for each scheduled exercise.
+- [x] A signed-in user can only access their own data (verified via Supabase RLS — a second user cannot see or modify my records).
+- [x] If I enter invalid profile data (e.g. height = 0, weight = -5), the app shows a validation error and does not save.
+- [ ] Automated end-of-week target adaptation (+10% for ≥90% completion, -10% for 30–59%) runs via Sunday night backend trigger.
+- [ ] 3-consecutive-week miss nudges trigger an in-app goal review prompt.
 
-## 9. Open questions & risks
+---
 
-**Resolved in this spec:**
+## 9. Decisions made along the way
 
-- ~~How should the system determine the initial workout schedule?~~ → Static lookup table keyed on (fitness_goal, experience_level) — see 5a.
-- ~~How should the system decide when/how to adjust?~~ → Weekly completion-rate heuristic with ±10% adjustments and guardrails — see 5a.
-- ~~How will we obtain exercise videos?~~ → Curated YouTube links for a seed library of ~20 exercises — see 5.
-- ~~What happens when a user misses workouts?~~ → 3-consecutive-week miss triggers a goal-review prompt — see 5a.
+1. **Google OAuth via Supabase Auth:** Implemented a unified `AuthContext` with an `onAuthStateChange` listener and localStorage session caching. Unauthenticated visitors are automatically served `<Landing />` while authenticated sessions load the `<Navbar />` and protected routes.
+2. **Direct Supabase RLS Client with Server-Authoritative Endpoints:** Client reads and writes user-specific records directly to Supabase with strict Row Level Security policies (`auth.uid() = user_id`), minimizing client-server hops. Complex and trusted calculations (streak algorithms, weekly completion summaries) are executed on the Node.js backend using the Supabase admin client.
+3. **Immutable Baseline Columns for Guardrails:** Added `initial_target_*` columns to `plan_exercises` at initial plan generation time, enabling self-contained 0.5×–1.5× adaptation checks without re-reading static templates.
+4. **Metric-First Design:** Enforced centimeters (`cm`) and kilograms (`kg`) across all profile forms, log inputs, and charts.
+5. **Configuration & Secrets Hygiene:** Segregated browser configuration (`VITE_*`) from private server secrets (`docs/CONFIG_AND_SECRETS.md`), purged temporary mock data, and confirmed zero secrets exist in Git history.
 
-**Remaining open questions:**
+---
 
-- How will we ensure workout templates are safe for all body types and ages? (v1 approach: add a health disclaimer; v2: consult a fitness professional to review templates.)
-- Should we allow users to manually edit or skip individual exercises in a generated plan, or must they follow it as-is?
-- Should the progress dashboard show an estimated goal-completion date, or just trend data?
+## 10. Open questions & risks
 
-### How to use this file with your AI agent
+**Resolved:**
+- ~~How should the system determine the initial workout schedule?~~ → Static lookup table keyed on `(fitness_goal, experience_level)` (12 templates) generated into `workout_plans` and `plan_exercises`.
+- ~~How should the system decide when/how to adjust?~~ → Weekly completion rate heuristic with ±10% adjustments and 0.5×–1.5× initial guardrails.
+- ~~How will we obtain exercise videos?~~ → Curated YouTube demonstration embeds for the 20-exercise seed library.
+- ~~What happens when a user misses workouts?~~ → Consecutive miss counter triggers an encouragement banner / goal-review prompt.
+- ~~What does an unauthenticated user see?~~ → Dedicated `<Landing />` page explaining the application with one-click Google OAuth sign-in.
 
-1. Fill in the sections above yourself — the thinking is the point.
-2. Ask your agent to **review** the spec for gaps or contradictions _before_ writing code.
-3. When you build a feature, point the agent at the exact spec section it implements.
-4. When the spec changes, update this file first — it is the source of truth, not the code.
+**Remaining for v2:**
+- Periodization and deload weeks for advanced trainees.
+- Manual exercise substitution / swap within an existing plan.
+- Unit system toggle (Imperial lbs/inches vs. Metric kg/cm).
+

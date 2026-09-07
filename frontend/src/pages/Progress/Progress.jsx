@@ -3,6 +3,7 @@ import { fetchActivePlan } from '../../lib/plans';
 import { getExerciseById } from '../../lib/exercises';
 import { fetchUserProfile, fetchWeightHistory } from '../../lib/userProfile';
 import { fetchWorkoutLogs } from '../../lib/workoutLogs';
+import { calculateDailyStreak } from '../../lib/streak';
 import CompletionChart from '../../components/CompletionChart/CompletionChart';
 import WeightChart from '../../components/WeightChart/WeightChart';
 import StreakCard from '../../components/StreakCard/StreakCard';
@@ -19,9 +20,11 @@ export default function Progress() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const loadProgressData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const loadProgressData = useCallback(async (showSpinner = false) => {
+    if (showSpinner) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const [profileRes, weightRes, planRes, logsRes] = await Promise.all([
         fetchUserProfile(),
@@ -97,7 +100,8 @@ export default function Progress() {
         )
       : 0;
 
-  const streak = 4;
+  // Calculate active daily streak from workout logs
+  const streak = calculateDailyStreak(workoutLogs.map((wh) => wh.performed_at));
 
   /* ── Loading state ── */
   if (loading) {
@@ -116,7 +120,7 @@ export default function Progress() {
           variant="error"
           title="Couldn't load progress data"
           text={error}
-          onRetry={loadProgressData}
+          onRetry={() => loadProgressData(true)}
         />
       </div>
     );

@@ -15,3 +15,20 @@
   height: 100%;
   border: none;
 }
+
+.youtube-embed__fallback {
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+.youtube-embed__fallback-link {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.youtube-embed__fallback-link:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}

@@ -175,14 +175,206 @@ Supabase Row-Level Security (RLS) will enforce these ownership rules when the da
 
 ## 6. API contract
 
-The backend API is responsible for trusted workout-planning, adaptation, and progress logic. The authenticated user's identity comes from the Supabase authentication token rather than from a user ID supplied by the client.
+The backend API is responsible for trusted workout-planning, adaptation, and progress logic. The authenticated user's identity is extracted server-side from the Supabase authentication JWT token (`Authorization: Bearer <token>`) rather than trusted from a user ID supplied by the client.
 
-| Method | Path                | Input                                                         | Returns                                                                      |
-| ------ | ------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| GET    | `/health`           | –                                                             | `{ "status": "ok" }`                                                         |
-| POST   | `/plans/generate`   | User profile and fitness goal from authenticated user         | Generated weekly workout plan with plan exercises                            |
-| POST   | `/plans/adapt`      | Authenticated user (current week's logs are read server-side) | Adapted next week's plan; `nudge` and `message` fields (see below)           |
-| GET    | `/progress/summary` | User from authentication token                                | Weekly completion-rate history, weight trend (from `weight_history`), streak |
+### Server vs. Client Responsibilities
+
+| Responsibility | Location | Rationale |
+|---|---|---|
+| **Workout Streak Calculation** | **Server** | Prevents client-side manipulation, avoids downloading months of raw workout logs over the wire, and guarantees a single trusted source of truth across web/mobile/dashboards. |
+| **Weekly Completion Rate** | **Server** | Volume calculations (prescribed vs. actual sets, reps, distance, duration) are computed authoritatively on the server. Used by both the Progress UI and the Adaptation Engine. |
+| **Plan Generation & Guardrail Reference** | **Server** | Matches the 12 static templates, calculates calendar date boundaries, and persists the immutable baseline (`initial_target_*`) required for safe long-term progression. |
+| **Workout Adaptation Heuristic** | **Server** | Evaluates completion rate thresholds (≥90%, 60–89%, 30–59%, <30%), enforces 0.5×–1.5× initial guardrails, checks consecutive missed week nudges, and can run via cron triggers. |
+| **Weight Trend Aggregation** | **Server** | Aggregates weigh-ins into starting weight, current weight, delta, and ordered data points for chart rendering. |
+| **UI State, Forms & Optimistic Updates** | **Client** | Profile forms, logging exercise inputs, day-to-day navigation, YouTube video playback, and responsive rendering. |
+
+---
+
+### Core v1 Endpoints
+
+The backend framework is **Node.js + Express** (`express: ^5.2.x`). All endpoints (except `/health`) require the `Authorization: Bearer <supabase_access_token>` header.
+
+| Method | Path | Auth Required | Purpose |
+|---|---|---|---|
+| `GET` | `/health` | No | Container health check for Docker / AWS App Runner |
+| `GET` | `/summary/week` | Optional/Yes | Returns current week summary snapshot (completion rate, streak, planned vs. completed) |
+| `POST` | `/plans/generate` | Yes | Generate initial 7-day workout plan from profile & goal |
+| `POST` | `/plans/adapt` | Yes | Evaluate performance, apply ±10% heuristic & guardrails, generate next week's plan |
+| `GET` | `/progress/summary` | Yes | Return trusted streak, weekly completion history, and weight trend |
+
+---
+
+#### 1. `GET /health`
+- **Purpose:** Liveness and readiness probe for container orchestrators.
+- **Request:** None.
+- **Response (`200 OK`):**
+  ```json
+  {
+    "status": "ok",
+    "timestamp": "2026-09-05T10:00:00.000Z"
+  }
+  ```
+
+---
+
+#### 2. `GET /summary/week`
+- **Purpose:** Returns a trusted summary snapshot for the current week (completion rate, active streak, and exercise counts).
+- **Headers:** Optional/Bearer token.
+- **Response (`200 OK`):**
+  ```json
+  {
+    "status": "placeholder",
+    "message": "Weekly summary endpoint. Will compute trusted weekly volume, streak, and completion rate.",
+    "data": {
+      "week_start_date": "2026-09-07",
+      "week_end_date": "2026-09-13",
+      "completion_rate": 0,
+      "streak_weeks": 0,
+      "total_planned_exercises": 0,
+      "total_completed_exercises": 0
+    }
+  }
+  ```
+
+---
+
+#### 3. `POST /plans/generate`
+- **Purpose:** Creates a 7-day personalized workout plan from the user's fitness goal and experience level, storing initial baseline targets for future guardrails.
+- **Headers:** `Authorization: Bearer <token>`, `Content-Type: application/json`
+- **Request Body (optional if profile already in DB):**
+  ```json
+  {
+    "fitness_goal": "weight_loss",
+    "experience_level": "beginner"
+  }
+  ```
+- **Response (`201 Created`):**
+  ```json
+  {
+    "plan": {
+      "id": "b3e21820-2ef8-4d5d-a169-76ff005698b3",
+      "user_id": "c1f7289b-7341-477d-b541-d8ec77598c11",
+      "week_start_date": "2026-09-07",
+      "week_end_date": "2026-09-13",
+      "template_goal": "weight_loss",
+      "template_level": "beginner",
+      "created_at": "2026-09-05T10:00:00.000Z"
+    },
+    "plan_exercises": [
+      {
+        "id": "e8a94b50-9c12-4eb4-b912-32a033f7c321",
+        "workout_plan_id": "b3e21820-2ef8-4d5d-a169-76ff005698b3",
+        "exercise_id": "a0000000-0000-0000-0000-000000000002",
+        "scheduled_date": "2026-09-07",
+        "exercise_order": 1,
+        "target_sets": 3,
+        "target_reps": 10,
+        "target_weight_kg": 45,
+        "target_duration_min": null,
+        "target_distance_km": null,
+        "initial_target_sets": 3,
+        "initial_target_reps": 10,
+        "initial_target_weight_kg": 45,
+        "initial_target_duration_min": null,
+        "initial_target_distance_km": null,
+        "exercise": {
+          "id": "a0000000-0000-0000-0000-000000000002",
+          "name": "Bench Press",
+          "category": "strength",
+          "muscle_group": "Chest",
+          "instructions": "Lie flat on the bench, grip the barbell slightly wider than shoulder-width, lower the bar smoothly to mid-chest, and press back up to starting position.",
+          "youtube_url": "https://www.youtube.com/watch?v=rT7DgCr-3pg"
+        }
+      }
+    ]
+  }
+  ```
+
+---
+
+#### 3. `POST /plans/adapt`
+- **Purpose:** Server reads current week's plan exercises and actual `workout_logs`, computes completion rate, applies the SPEC §5a adaptation rules (±10%, 0.5×–1.5× guardrails), and produces next week's schedule.
+- **Headers:** `Authorization: Bearer <token>`
+- **Request Body:** None (server loads the active plan and current week's logs for the authenticated user).
+- **Response (`200 OK`):**
+  ```json
+  {
+    "workout_plan": {
+      "id": "9cb44321-4f11-45de-910a-471ba98031e4",
+      "user_id": "c1f7289b-7341-477d-b541-d8ec77598c11",
+      "week_start_date": "2026-09-14",
+      "week_end_date": "2026-09-20",
+      "template_goal": "weight_loss",
+      "template_level": "beginner",
+      "created_at": "2026-09-13T23:00:00.000Z"
+    },
+    "plan_exercises": [
+      {
+        "id": "fa1290bb-8f31-419b-a01f-0b31e976da31",
+        "workout_plan_id": "9cb44321-4f11-45de-910a-471ba98031e4",
+        "exercise_id": "a0000000-0000-0000-0000-000000000002",
+        "scheduled_date": "2026-09-14",
+        "exercise_order": 1,
+        "target_sets": 3,
+        "target_reps": 11,
+        "target_weight_kg": 50,
+        "target_duration_min": null,
+        "target_distance_km": null,
+        "initial_target_sets": 3,
+        "initial_target_reps": 10,
+        "initial_target_weight_kg": 45,
+        "initial_target_duration_min": null,
+        "initial_target_distance_km": null
+      }
+    ],
+    "completion_rate": 92,
+    "nudge": null,
+    "message": "Targets increased 10% — great week!"
+  }
+  ```
+
+---
+
+#### 4. `GET /progress/summary`
+- **Purpose:** Delivers authoritative progress metrics computed across past plans and logs, directly powering dashboard cards and progress charts without bulky client computations.
+- **Headers:** `Authorization: Bearer <token>`
+- **Request Body:** None.
+- **Response (`200 OK`):**
+  ```json
+  {
+    "streak": {
+      "current_weeks": 4,
+      "best_weeks": 6,
+      "last_logged_date": "2026-09-04"
+    },
+    "current_week": {
+      "completion_rate": 75,
+      "total_planned": 12,
+      "total_completed": 9
+    },
+    "weekly_history": [
+      { "week": "W1", "start_date": "2026-08-10", "rate": 85 },
+      { "week": "W2", "start_date": "2026-08-17", "rate": 92 },
+      { "week": "W3", "start_date": "2026-08-24", "rate": 78 },
+      { "week": "W4", "start_date": "2026-08-31", "rate": 65 },
+      { "week": "W5", "start_date": "2026-09-07", "rate": 75 }
+    ],
+    "weight_summary": {
+      "starting_weight_kg": 78.5,
+      "current_weight_kg": 76.2,
+      "net_change_kg": -2.3,
+      "history": [
+        { "recorded_at": "2026-08-10T08:00:00Z", "weight_kg": 78.5 },
+        { "recorded_at": "2026-08-17T08:00:00Z", "weight_kg": 77.8 },
+        { "recorded_at": "2026-08-24T08:00:00Z", "weight_kg": 77.1 },
+        { "recorded_at": "2026-08-31T08:00:00Z", "weight_kg": 76.6 },
+        { "recorded_at": "2026-09-04T08:00:00Z", "weight_kg": 76.2 }
+      ]
+    }
+  }
+  ```
+
+---
 
 ### Adaptation logic (`POST /plans/adapt`)
 
@@ -227,178 +419,190 @@ Invalid input returns HTTP `400` with field-level error messages. Database `CHEC
 
 ## 7. Secrets & configuration
 
-- **Front end environment variables:**
-  - Supabase project URL
-  - Supabase anonymous/publishable client key
-  - Backend API URL
+The project uses a unified configuration standard detailed authoritatively in [`docs/CONFIG_AND_SECRETS.md`](./CONFIG_AND_SECRETS.md).
 
-- **Backend environment variables:**
-  - Supabase project URL
-  - Supabase server-side secret/service key
-  - Backend port
+- **Front end environment variables (`VITE_*`):**
+  - `VITE_SUPABASE_URL`: Supabase project API gateway URL.
+  - `VITE_SUPABASE_ANON_KEY`: Browser-safe anon/publishable key (enforced by RLS).
+  - `VITE_API_URL`: Backend API base URL.
+  - *Strict Rule:* Any variable prefixed with `VITE_` is public and bundled into client assets. Never put private keys here.
 
-- **Local development:** Store environment variables in `.env` files that are excluded from Git using `.gitignore`.
+- **Backend environment variables (unprefixed, server-side only):**
+  - `PORT`: HTTP port Express listens on (default: `8000`).
+  - `NODE_ENV`: Runtime environment (`development`, `production`, `test`).
+  - `SUPABASE_URL`: Supabase project URL for server queries.
+  - `SUPABASE_SERVICE_ROLE_KEY`: Admin secret key that bypasses RLS (CRITICAL SECRET).
+  - `CORS_ORIGIN`: Allowed origins for API requests (`*` in dev, Vercel domain in prod).
+  - `AI_API_KEY`: Optional LLM API key for coaching insights.
 
-- **Cloud deployment:** Store environment variables using Vercel environment settings for the frontend and AWS runtime/platform settings for the backend.
+- **Local development:** Handled via `.env` (monorepo root), `backend/.env`, and `frontend/.env.local`. All `.env*` files are strictly excluded from Git.
+- **Cloud deployment:** Frontend configuration is managed in **Vercel Project Environment Variables**. Backend secrets are stored securely in **AWS Secrets Manager** or **AWS Systems Manager (SSM) Parameter Store** and injected into AWS App Runner / ECS container runtime via IAM task execution roles.
+- **Repo hygiene:** Git history audit verified zero committed secrets. Clean sweep maintained via pre-commit and automated checks.
 
-- **Security rule:** Secrets and private keys must never be committed to Git or included in frontend source code.
+---
 
 ## 8. Deployment plan
 
 | Piece       | Local (early)               | Cloud (final)                               |
 | ----------- | --------------------------- | ------------------------------------------- |
-| Front end   | React development server    | Vercel                                      |
+| Front end   | Vite dev server (`:5173`)   | Vercel                                      |
 | Data & auth | Supabase cloud              | Supabase cloud                              |
 | Backend     | Node.js + Express in Docker | Docker image in Amazon ECR → AWS App Runner |
 
-The frontend is developed and tested locally before being deployed to Vercel. Supabase provides the cloud database and authentication throughout development and production. The backend is containerized with Docker locally, pushed to Amazon ECR, and deployed as a containerized service on AWS App Runner. The backend includes a `node-cron` scheduled job for Sunday-night automatic workout adaptation (see §6).
+The frontend is developed and tested locally before being deployed to Vercel. Supabase provides the cloud database and authentication throughout development and production. The backend is containerized with Docker locally, pushed to Amazon ECR, and deployed as a containerized service on AWS App Runner.
+
+---
 
 ## 9. Decisions & trade-offs
 
 - **Decision:** Workout-plan generation, performance evaluation, and workout adaptation logic are handled by the Node.js + Express backend rather than the React frontend.
+  - **Why:** These rules determine the user's future workout targets and should be handled in a controlled, trusted environment. Keeping the logic in the backend also makes the adaptation rules easier to test, change, and keep consistent across clients.
+  - **Rejected alternative:** Implementing the adaptation rules entirely in React.
+  - **Why rejected:** Browser-side logic can be inspected or modified by the client, and putting important business rules in the frontend would make the system harder to control and maintain.
 
-  **Why:** These rules determine the user's future workout targets and should be handled in a controlled, trusted environment. Keeping the logic in the backend also makes the adaptation rules easier to test, change, and keep consistent across clients.
-
-  **Rejected alternative:** Implementing the adaptation rules entirely in React.
-
-  **Why rejected:** Browser-side logic can be inspected or modified by the client, and putting important business rules in the frontend would make the system harder to control and maintain.
-
-- **Decision:** The 12 initial workout templates are stored as static backend configuration rather than database tables.
-
-  **Why:** V1 uses a fixed set of pre-authored templates based on four fitness goals and three experience levels. Storing them as application configuration avoids unnecessary database complexity.
-
-  **Rejected alternative:** Creating database tables for workout templates.
-
-  **Why rejected:** V1 does not require users to create or manage templates. The database only needs to store the workout plans generated for individual users.
+- **Decision:** The 12 initial workout templates are stored as static application configuration rather than database tables.
+  - **Why:** V1 uses a fixed set of pre-authored templates based on four fitness goals and three experience levels. Storing them as application configuration avoids unnecessary database complexity.
+  - **Rejected alternative:** Creating database tables for workout templates.
+  - **Why rejected:** V1 does not require users to create or manage templates. The database only needs to store the workout plans generated for individual users.
 
 - **Decision:** Initial target values are stored on each `plan_exercises` row (`initial_target_*` columns) rather than re-read from the static template at adaptation time.
-
-  **Why:** Storing the reference values alongside the adapted values makes the 1.5×/0.5× guardrail check a simple same-row comparison. It also decouples adaptation from the template configuration — if templates are revised in a future version, existing users' guardrails remain based on their original plan.
-
-  **Rejected alternative:** Re-reading the static template to determine initial values during each adaptation.
-
-  **Why rejected:** Tightly couples the adaptation logic to the template config. If templates are ever changed, the guardrail reference values for existing users would silently shift.
+  - **Why:** Storing the reference values alongside the adapted values makes the 1.5×/0.5× guardrail check a simple same-row comparison. It also decouples adaptation from the template configuration — if templates are revised in a future version, existing users' guardrails remain based on their original plan.
+  - **Rejected alternative:** Re-reading the static template to determine initial values during each adaptation.
+  - **Why rejected:** Tightly couples the adaptation logic to the template config. If templates are ever changed, the guardrail reference values for existing users would silently shift.
 
 - **Decision:** Weight history is stored in a separate `weight_history` table rather than keeping only the current value on the `users` row.
+  - **Why:** The spec requires showing "current weight vs. starting weight" and a weight trend. A history table naturally supports trend visualization and preserves the starting weight without an extra column.
+  - **Rejected alternative:** Adding a `starting_weight_kg` column to the `users` table.
+  - **Why rejected:** A single starting-weight column cannot support a weight-trend chart, which the progress dashboard is expected to show.
 
-  **Why:** The spec requires showing "current weight vs. starting weight" and a weight trend. A history table naturally supports trend visualization and preserves the starting weight without an extra column.
+- **Decision:** Standardized configuration & secrets handling across Frontend, Backend, Vercel, and AWS (`docs/CONFIG_AND_SECRETS.md`).
+  - **Why:** Enforcing the `VITE_*` prefix exclusively for public browser code and unprefixed variables for private backend code prevents catastrophic leaks of the Supabase `service_role` key. Centralizing all variables in `.env.example` eliminates configuration guesswork.
+  - **Rejected alternative:** Sharing one `.env` file across frontend and backend with loose naming.
+  - **Why rejected:** Risk of inadvertently exposing server secrets through Vite's build bundle.
 
-  **Rejected alternative:** Adding a `starting_weight_kg` column to the `users` table.
+- **Decision:** Auth-Gated Landing Screen via `AppShell` Pattern.
+  - **Why:** Using an `AppShell` component conditioned on `useAuth().user` allows instant switching between the public `<Landing />` screen and the private authenticated app routes (`<Navbar />` + `<Dashboard />`), eliminating complex URL rewrites or flash-of-unauthenticated-content.
+  - **Rejected alternative:** Distinct `/landing` URL route with redirect hooks.
+  - **Why rejected:** Required extra redirect roundtrips and complicated client routing states during initial OAuth token resolution.
 
-  **Why rejected:** A single starting-weight column cannot support a weight-trend chart, which the progress dashboard is expected to show.
+- **Decision:** Native Node.js Test Runner (`node --test`).
+  - **Why:** Built-in runner requires zero external dependencies, executes in under 100ms, and provides full assertion and lifecycle capabilities out-of-the-box.
+  - **Rejected alternative:** Jest or Mocha/Chai.
+  - **Why rejected:** Heavy dependency footprint and slow cold startup times for a lightweight microservice.
+
+- **Decision:** Modular Database Access Layer (`frontend/src/lib/`).
+  - **Why:** Isolating database queries into domain-specific modules (`plans.js`, `exercises.js`, `workoutLogs.js`, `userProfile.js`) keeps UI components purely focused on presentation and state, and enables straightforward error boundary handling.
+  - **Rejected alternative:** Writing inline Supabase `.from(...)` calls directly inside React component hooks.
+  - **Why rejected:** Leads to duplicate queries, scattered error handling, and high coupling.
+
+- **Decision:** Removal of Mock Data in favor of Live Supabase Schema (`docs/supabase_setup.sql`).
+  - **Why:** Temporary Week 4 mock data was purged to ensure the repository remains tidy, maintainable, and strictly tied to real Postgres tables with Row Level Security.
+  - **Rejected alternative:** Maintaining dual mock/live data branches in code.
+  - **Why rejected:** Created cognitive overhead, dead code debt, and confusion about active data sources.
+
+---
 
 ## 10. Frontend Screens & Component Structure
 
 ### Screens
 
-The V1 frontend will contain five main screens:
+The frontend contains six primary screens:
 
-#### Dashboard
+#### 1. Landing (`<Landing />`)
+Public front door served at `/` for unauthenticated visitors. Introduces FitTrack with responsive hero visuals, core feature cards, and a one-click Google OAuth sign-in button (`#landing-signin-btn`).
 
-Shows a **snapshot of the current state**: today's scheduled workout, this week's completion rate, current weight, and workout streak. Provides quick navigation to the Workout and Progress screens. This screen answers "what should I do today?" and "how is this week going?"
+#### 2. Dashboard (`<Dashboard />`)
+Current status overview for signed-in users: today's scheduled workout card, weekly completion percentage, current weight vs. start weight, active daily streak, and adaptation nudges. Loads data live via Supabase.
 
-Week 4 uses mock data.
+#### 3. Create Plan (`<CreatePlan />`)
+Profile onboarding and plan generator. Collects user metrics (age, height cm, weight kg) and selections (experience level, fitness goal) through `ProfileForm`. Automatically matches the pre-authored 12-template matrix and persists the generated 7-day schedule to `workout_plans` and `plan_exercises` with `initial_target_*` baselines.
 
-#### Create Plan
+#### 4. Workout (`<Workout />`)
+Interactive daily workout execution screen. Uses `DaySelector` to navigate the current week's schedule. Lists scheduled exercises with prescribed target sets, reps, weight, duration, or distance. Provides inline recording via `WorkoutLogForm`, persisting actual completed volume to `workout_logs` and updating completion indicators in real time.
 
-Collects the user's name, age, height, weight, experience level, and fitness goal via a profile form. In Week 4 this screen uses mock data only. In later weeks, the information will be stored through the application's authentication and database layer.
+#### 5. Exercise Details (`<ExerciseDetails />`)
+Guidance modal/screen showing category, targeted muscle group, detailed text instructions, and a responsive embedded YouTube demonstration video via `YouTubeEmbed`. Reads from the Supabase `exercises` seed library.
 
-#### Workout
+#### 6. Progress (`<Progress />`)
+Longitudinal analytics screen featuring interactive SVG charts: weekly completion volume history (`CompletionChart`), weight progression over time (`WeightChart`), and workout streak milestones.
 
-Displays the user's scheduled workout for the selected day. Shows prescribed exercises and their targets. Allows the user to begin recording workout performance by entering actual sets, reps, weight, duration, or distance.
+---
 
-Week 4 uses mock data.
+### Navigation & Routing
 
-#### Exercise Details
+Client-side navigation is managed by **React Router v7**:
 
-Displays exercise category, muscle group, text instructions, and an embedded YouTube demonstration video. Uses the exercise seed library defined in the specification.
+| Route | Screen | Access Condition | Description |
+|---|---|---|---|
+| `/` | Landing / Dashboard | Dynamic | Displays `<Landing />` if unauthenticated; displays `<Dashboard />` if authenticated |
+| `/create-plan` | Create Plan | Authenticated | Profile setup and plan generation form |
+| `/workout` | Workout | Authenticated | Daily workout schedule and exercise logging |
+| `/exercise/:id` | Exercise Details | Authenticated | Exercise demonstration and instructions |
+| `/progress` | Progress | Authenticated | Longitudinal charts and completion trends |
 
-Week 4 uses mock exercise data.
+---
 
-#### Progress
-
-Displays **historical trends and charts**: weekly completion-rate history over time, weight trend from `weight_history`, and cumulative workout streak. This screen answers "how am I doing over weeks and months?" Unlike Dashboard (current snapshot), Progress focuses on longitudinal data.
-
-Week 4 uses mock data.
-
-### Navigation
-
-React Router will be used for client-side navigation.
-
-| Route           | Screen           |
-| --------------- | ---------------- |
-| `/`             | Dashboard        |
-| `/create-plan`  | Create Plan      |
-| `/workout`      | Workout          |
-| `/exercise/:id` | Exercise Details |
-| `/progress`     | Progress         |
-
-> **Note — Landing page:** A public landing page with sign-in will be added in a future iteration. When implemented, `/` will serve the landing page for unauthenticated users and redirect to the Dashboard for authenticated users.
-
-### Route Protection
-
-All routes listed above are protected and require authentication. Unauthenticated users will be redirected to the sign-in flow. Route guards are implemented using a React Router wrapper component (`<ProtectedRoute>`) that checks the user's Supabase authentication state before rendering the target screen.
-
-### Component Structure
+### Component & Directory Structure
 
 ```
-components/
-├── Navbar              # Global navigation bar
-├── ProtectedRoute      # Auth guard wrapper for React Router
-├── WorkoutCard         # Workout summary card (Dashboard, Workout)
-├── ExerciseCard        # Exercise overview card (Workout, Exercise Details)
-├── WorkoutLogForm      # Input form for recording actual sets/reps/weight/duration/distance
-├── ProfileForm         # Onboarding form for user profile and goal selection
-├── YouTubeEmbed        # Responsive YouTube video embed
-├── DaySelector         # Day picker for navigating the weekly schedule
-├── NudgeBanner         # Adaptation nudge / encouragement message banner
-├── ProgressSummary     # Snapshot of completion rate + streak (Dashboard)
-├── CompletionChart     # Weekly completion-rate trend chart (Progress)
-├── WeightChart         # Weight trend line chart (Progress)
-├── StreakCard          # Current streak display
-├── WeeklyCompletion    # This week's completion rate display
-└── WeightCard          # Current weight display
-
-pages/
-├── Dashboard
-├── CreatePlan
-├── Workout
-├── ExerciseDetails
-└── Progress
-
-data/
-└── mock/
-    ├── users.js         # Mock user profile
-    ├── exercises.js     # Mock exercise seed library
-    ├── plans.js         # Mock workout plans and plan exercises
-    ├── logs.js          # Mock workout logs
-    └── weightHistory.js # Mock weight history entries
+frontend/src/
+├── components/
+│   ├── AuthButton/         # Sign-in/out button with Google branding & loading skeleton
+│   ├── CompletionChart/    # SVG bar chart for weekly completion percentage
+│   ├── DaySelector/        # 7-day calendar navigation bar
+│   ├── ExerciseCard/       # Summary card for scheduled exercise item
+│   ├── Navbar/             # Top navigation bar with active links and AuthButton
+│   ├── NudgeBanner/        # Adaptation feedback and encouragement alert
+│   ├── ProfileForm/        # Goal selection and metric input form
+│   ├── ProgressSummary/    # Metric overview chip (completion rate + streak)
+│   ├── StateScreen/        # Shared loading, error, and empty-state displays
+│   ├── StreakCard/         # Visual streak counter card
+│   ├── WeeklyCompletion/   # Radial/bar weekly completion rate indicator
+│   ├── WeightCard/         # Current weight and weight change badge
+│   ├── WeightChart/        # SVG line chart for weigh-in history
+│   ├── WorkoutCard/        # Daily workout summary overview card
+│   ├── WorkoutLogForm/     # Modal form for logging sets, reps, weight, and cardio
+│   └── YouTubeEmbed/       # Responsive YouTube video container
+├── context/
+│   └── AuthContext.jsx     # Supabase Auth provider, session observer, and hooks
+├── lib/
+│   ├── supabase.js         # Initialized Supabase browser client singleton
+│   ├── plans.js            # Plan template generation and schedule fetchers
+│   ├── exercises.js        # Exercise library fetcher and local fallback catalog
+│   ├── workoutLogs.js      # Workout log insertion, update, and history queries
+│   └── userProfile.js      # Profile retrieval, updates, and weigh-in logging
+├── pages/
+│   ├── Landing/            # Public marketing and sign-in screen
+│   ├── Dashboard/          # Today's workout and status dashboard
+│   ├── CreatePlan/         # Onboarding and template generation page
+│   ├── Workout/            # Daily exercise schedule and logging interface
+│   ├── ExerciseDetails/    # Exercise instruction and video demo view
+│   └── Progress/           # Historical trend charts and analytics
+├── App.jsx                 # AppShell with auth evaluation and router configuration
+├── main.jsx                # Application root entry point
+└── index.css               # Design tokens, color palette, and global CSS reset
 ```
 
-The `pages/` directory contains complete application screens, while reusable UI elements are placed in `components/`. Temporary Week 4 mock data is organized as separate modules under `data/mock/` to mirror the data model and keep individual files manageable.
+---
 
 ### Component-to-Screen Mapping
 
-| Component          | Dashboard | Create Plan | Workout | Exercise Details | Progress |
-| ------------------ | :-------: | :---------: | :-----: | :--------------: | :------: |
-| `Navbar`           |     ✓     |      ✓      |    ✓    |        ✓         |    ✓     |
-| `ProtectedRoute`   |     ✓     |      ✓      |    ✓    |        ✓         |    ✓     |
-| `WorkoutCard`      |     ✓     |             |    ✓    |                  |          |
-| `ExerciseCard`     |           |             |    ✓    |        ✓         |          |
-| `WorkoutLogForm`   |           |             |    ✓    |                  |          |
-| `ProfileForm`      |           |      ✓      |         |                  |          |
-| `YouTubeEmbed`     |           |             |         |        ✓         |          |
-| `DaySelector`      |           |             |    ✓    |                  |          |
-| `NudgeBanner`      |     ✓     |             |         |                  |          |
-| `ProgressSummary`  |     ✓     |             |         |                  |          |
-| `CompletionChart`  |           |             |         |                  |    ✓     |
-| `WeightChart`      |           |             |         |                  |    ✓     |
-| `StreakCard`       |     ✓     |             |         |                  |    ✓     |
-| `WeeklyCompletion` |     ✓     |             |         |                  |    ✓     |
-| `WeightCard`       |     ✓     |             |         |                  |    ✓     |
+| Component | Landing | Dashboard | Create Plan | Workout | Exercise Details | Progress |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| `Navbar` | | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `AuthButton` | ✓ (inline) | ✓ (navbar) | ✓ (navbar) | ✓ (navbar) | ✓ (navbar) | ✓ (navbar) |
+| `WorkoutCard` | | ✓ | | ✓ | | |
+| `ExerciseCard` | | | | ✓ | ✓ | |
+| `WorkoutLogForm` | | | | ✓ | | |
+| `ProfileForm` | | | ✓ | | | |
+| `YouTubeEmbed` | | | | | ✓ | |
+| `DaySelector` | | | | ✓ | | |
+| `NudgeBanner` | | ✓ | | | | |
+| `ProgressSummary`| | ✓ | | | | |
+| `CompletionChart`| | | | | | ✓ |
+| `WeightChart` | | | | | | ✓ |
+| `StreakCard` | | ✓ | | | | ✓ |
+| `WeeklyCompletion`| | ✓ | | | | |
+| `WeightCard` | | ✓ | | | | ✓ |
+| `StateScreen` | | ✓ | ✓ | ✓ | ✓ | ✓ |
 
-### How to use this file with your AI agent
-
-1. Design the sections above yourself; the agent can suggest, but you decide.
-2. Ask the agent to build **one component at a time**, pointing it at the relevant section.
-3. After each build, check the code matches this doc. If reality won, update the doc.
