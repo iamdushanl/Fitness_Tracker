@@ -9,7 +9,7 @@
 # CD (Continuous Deployment) is handled by Vercel:
 #   • Push to main       → production deployment (fitness-tracker.vercel.app)
 #   • Open a PR          → preview deployment (unique URL posted to the PR)
-#   See vercel.json at the repo root for build configuration.
+#   See frontend/vercel.json for SPA routing configuration.
 
 name: CI
 
@@ -19,13 +19,11 @@ on:
     paths:
       - "frontend/**"
       - ".github/workflows/ci.yml"
-      - "vercel.json"
   pull_request:
     branches: [main]
     paths:
       - "frontend/**"
       - ".github/workflows/ci.yml"
-      - "vercel.json"
 
 # Cancel redundant runs on the same branch/PR
 concurrency:
