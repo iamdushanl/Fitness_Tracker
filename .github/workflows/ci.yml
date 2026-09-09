@@ -82,4 +82,4 @@ jobs:
   #     - uses: actions/checkout@v4
   #     - name: Build image
   #       run: docker build -t fitness-backend ./backend
-  #     # ... configure AWS credentials, push to ECR, deploy to App Runner/ECS ...
+  #     # ... configure AWS credentials, push to ECR, deploy to App Runner/ECS 
