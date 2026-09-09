@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rootDirectory": "frontend",
+
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
+
+  "github": {
+    "enabled": true,
+    "autoAlias": true,
+    "silent": false
+  }
+}
