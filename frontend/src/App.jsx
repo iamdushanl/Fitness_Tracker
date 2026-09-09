@@ -51,4 +51,4 @@ export default function App() {
     </AuthProvider>
   );
 }
-
+const unusedVariable = "CI test";
