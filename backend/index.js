@@ -18,7 +18,13 @@ const config = {
 const app = express();
 
 // Middleware
-app.use(cors({ origin: config.corsOrigin }));
+// CORS_ORIGIN supports a single origin, '*', or a comma-separated list of origins.
+// e.g. "https://fitness-tracker-xi-eosin.vercel.app,http://localhost:5173"
+const allowedOrigins =
+  config.corsOrigin === '*'
+    ? '*'
+    : config.corsOrigin.split(',').map((o) => o.trim());
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 const { requireAuth } = require('./middleware/auth');
