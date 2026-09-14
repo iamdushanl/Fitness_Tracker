@@ -51,7 +51,10 @@ app.get('/', (req, res) => {
  * Public liveness/health probe
  */
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.json({
+    status: 'ok',
+    service: 'fitness-backend',
+  });
 });
 
 const { supabaseAdmin } = require('./supabaseClient');
@@ -150,9 +153,3 @@ if (require.main === module) {
 }
 
 module.exports = { app, config };
-
-/*
-Received SIGTERM. Shutting down gracefully...
-HTTP server closed.
-Backend server running on http://localhost:8000 (development)
-*/
