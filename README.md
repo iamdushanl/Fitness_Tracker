@@ -16,7 +16,7 @@ FitTrack is an adaptive workout tracking web app that generates personalized 7-d
 │   ├── middleware/           # Supabase JWT token verification
 │   ├── utils/                # Server-authoritative streak & summary algorithms
 │   ├── tests/                # Native Node.js test suite
-│   ├── Dockerfile            # Multi-stage container build for AWS App Runner
+│   ├── Dockerfile            # Multi-stage container build for AWS ECS
 │   └── .env.example          # Backend-specific environment template
 ├── docs/
 │   ├── SPEC.md               # Product specification & business requirements
@@ -31,11 +31,21 @@ FitTrack is an adaptive workout tracking web app that generates personalized 7-d
 
 ---
 
+## Live Deployments
+
+| Service | URL |
+|---|---|
+| **Frontend** | [https://fitness-tracker-xi-eosin.vercel.app](https://fitness-tracker-xi-eosin.vercel.app) |
+| **Backend API** | `https://fi-86eb39c4d24d48df9757700cee848968.ecs.us-east-1.on.aws` |
+| **Health check** | `curl https://fi-86eb39c4d24d48df9757700cee848968.ecs.us-east-1.on.aws/health` → `{"status":"ok"}` |
+
+---
+
 ## Required Environment Variables
 
 All environment variables follow strict scoping: **`VITE_*` variables are public** (bundled into the browser build), while **unprefixed variables are private server secrets** (never exposed to client code).
 
-For full details and secret management instructions, see [`docs/CONFIG_AND_SECRETS.md`](file:///c:/Users/HP/Documents/fitness-tracker-starter/docs/CONFIG_AND_SECRETS.md).
+For full details and secret management instructions, see [`docs/CONFIG_AND_SECRETS.md`](./docs/CONFIG_AND_SECRETS.md).
 
 ### Frontend Variables (`frontend/.env.local` or Vercel)
 
@@ -45,7 +55,7 @@ For full details and secret management instructions, see [`docs/CONFIG_AND_SECRE
 | `VITE_SUPABASE_ANON_KEY` | **Yes** | Browser-safe Supabase key (protected by RLS) | `eyJ...` |
 | `VITE_API_URL` | No | Base URL of the backend API service | `http://localhost:8000` |
 
-### Backend Variables (`backend/.env` or AWS Secrets Manager)
+### Backend Variables (`backend/.env` or AWS Secrets Manager / ECS)
 
 | Variable | Required | Secret? | Description | Example / Default |
 |---|---|---|---|---|
@@ -53,8 +63,20 @@ For full details and secret management instructions, see [`docs/CONFIG_AND_SECRE
 | `NODE_ENV` | No | No | Runtime environment (`development`, `production`) | `development` |
 | `SUPABASE_URL` | **Yes** | No | Supabase project URL for server queries | `https://your-project-ref.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | **Yes** | **YES** | Admin service role key (bypasses RLS) | `eyJ...` |
-| `CORS_ORIGIN` | No | No | Allowed CORS origin (`*` in dev, Vercel domain in prod) | `*` |
+| `CORS_ORIGIN` | No | No | Comma-separated allowed origins | `*` (dev) / `https://app.vercel.app,http://localhost:5173` (prod) |
 | `AI_API_KEY` | Optional | **YES** | Optional LLM API key for workout insights | `sk-...` |
+
+### GitHub Actions Secrets (repo Settings → Secrets → Actions)
+
+| Secret | Value |
+|---|---|
+| `AWS_ACCESS_KEY_ID` | IAM user access key |
+| `AWS_SECRET_ACCESS_KEY` | IAM user secret key |
+| `AWS_REGION` | `us-east-1` |
+| `ECR_REGISTRY` | `826136930769.dkr.ecr.us-east-1.amazonaws.com` |
+| `ECR_REPOSITORY` | `fitness-backend` |
+| `ECS_CLUSTER` | `default` |
+| `ECS_SERVICE` | `fitness-backend-9c50` |
 
 ---
 
@@ -103,7 +125,7 @@ Check service health at: **`http://localhost:8000/health`**.
 
 ### 4. Run Backend in a Container (Docker)
 
-To build and run the production container locally (mirroring AWS App Runner):
+To build and run the production container locally (mirroring AWS ECS):
 
 ```bash
 cd backend
@@ -143,13 +165,27 @@ git grep -i -E "key|secret|password|token" -- . ':!*.md'
 
 ---
 
+## CI/CD Pipeline
+
+On every push to `main`:
+
+| Job | Triggers on | Steps |
+|---|---|---|
+| `Frontend CI` | `frontend/**` changes | Install → Lint (OxLint) → Build (Vite) |
+| `Deploy Backend` | `backend/**` changes | Configure AWS → Login ECR → Build `linux/amd64` image → Push (`:sha` + `:latest`) → Force-deploy ECS |
+
+See [`.github/workflows/ci.yml`](.github/workflows/ci.yml) for the full workflow definition.
+
+---
+
 ## Architecture & Decisions
 
 1. **Monorepo Structure:** Frontend, backend, and documentation reside in a single repository for synchronized versioning and shared specification history.
 2. **Server-Authoritative Heuristics:** Streak calculations, volume comparisons, and ±10% weekly adaptation logic are executed on the backend to prevent client manipulation and enforce safe 0.5×–1.5× volume guardrails.
 3. **Configuration & Secrets Standard:** Strictly separated public `VITE_*` configuration from private server secrets. Secrets are managed via AWS Secrets Manager / Parameter Store and Vercel, with zero credentials permitted in Git history.
 4. **Row Level Security (RLS):** Supabase database tables enforce strict tenant isolation (`auth.uid() = user_id`) for direct client access, while the backend utilizes the `service_role` key solely for authoritative cross-record calculations.
-5. **Transparency & Known Limitations:** All architectural trade-offs, roadmap items, and deferred features are tracked openly in [`docs/KNOWN-ISSUES.md`](file:///c:/Users/HP/Documents/fitness-tracker-starter/docs/KNOWN-ISSUES.md).
+5. **GitOps Deployment:** Every push to `backend/**` on `main` automatically builds a Docker image, pushes to Amazon ECR, and force-deploys AWS ECS — zero manual container management.
+6. **Transparency & Known Limitations:** All architectural trade-offs, roadmap items, and deferred features are tracked openly in [`docs/KNOWN-ISSUES.md`](./docs/KNOWN-ISSUES.md).
 
 ---
 

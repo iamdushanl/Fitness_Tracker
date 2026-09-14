@@ -1,8 +1,8 @@
 # ARCH.md — Architecture
 
 > **This is how your app is built** — the decisions behind the code.
-> You write this _after_ `SPEC.md` and _before_ serious building. It's yours to design; there is no single right answer.
 > Keep it current: if the build drifts from this doc, fix the doc.
+> Status reflects the live production system as of **September 2026**.
 
 ---
 
@@ -134,7 +134,7 @@ The application uses six PostgreSQL tables. The 12 initial workout templates are
 ### Computed values (not stored)
 
 - **Weekly completion rate** — calculated from `workout_logs` actual values vs. `plan_exercises` target values for a given week's plan.
-- **Streak** — consecutive weeks (ending at the current week) where the user has ≥ 1 `workout_log` entry. Computed at query time by the `GET /progress/summary` endpoint.
+- **Daily streak** — consecutive days (ending at today or yesterday) where the user has ≥ 1 `workout_log` entry. Computed server-side by `GET /summary/week`. Algorithm is identical on client (`frontend/src/lib/streak.js`) and server (`backend/utils/streak.js`); both are unit-tested.
 - **Weight trend** — derived from `weight_history` entries ordered by `recorded_at`. The starting weight is the earliest entry.
 
 ### Data flow
@@ -190,51 +190,48 @@ The backend API is responsible for trusted workout-planning, adaptation, and pro
 
 ---
 
-### Core v1 Endpoints
+### Endpoints
 
-The backend framework is **Node.js + Express** (`express: ^5.2.x`). All endpoints (except `/health`) require the `Authorization: Bearer <supabase_access_token>` header.
+The backend framework is **Node.js + Express** (`express: ^5.2.x`). All endpoints except `/` and `/health` require `Authorization: Bearer <supabase_access_token>`.
 
-| Method | Path | Auth Required | Purpose |
-|---|---|---|---|
-| `GET` | `/health` | No | Container health check for Docker / AWS App Runner |
-| `GET` | `/summary/week` | Optional/Yes | Returns current week summary snapshot (completion rate, streak, planned vs. completed) |
-| `POST` | `/plans/generate` | Yes | Generate initial 7-day workout plan from profile & goal |
-| `POST` | `/plans/adapt` | Yes | Evaluate performance, apply ±10% heuristic & guardrails, generate next week's plan |
-| `GET` | `/progress/summary` | Yes | Return trusted streak, weekly completion history, and weight trend |
+| Method | Path | Auth Required | Status | Purpose |
+|---|---|---|---|---|
+| `GET` | `/` | No | ✅ Live | API root — service info & endpoint directory |
+| `GET` | `/health` | No | ✅ Live | Container liveness probe for Docker & ECS |
+| `GET` | `/summary/week` | Yes | ✅ Live | Current-week summary: streak, total minutes, workout count |
+| `POST` | `/plans/generate` | Yes | ⬜ Planned | Generate initial 7-day workout plan from profile & goal |
+| `POST` | `/plans/adapt` | Yes | ⬜ Planned | Evaluate completion rate, apply ±10% heuristic, generate next week's plan |
+| `GET` | `/progress/summary` | Yes | ⬜ Planned | Return authoritative streak, weekly completion history, and weight trend |
 
 ---
 
-#### 1. `GET /health`
-- **Purpose:** Liveness and readiness probe for container orchestrators.
+#### `GET /health`
+- **Purpose:** Liveness and readiness probe for Docker `HEALTHCHECK` and AWS ECS health checks.
 - **Request:** None.
 - **Response (`200 OK`):**
   ```json
-  {
-    "status": "ok",
-    "timestamp": "2026-09-05T10:00:00.000Z"
-  }
+  { "status": "ok" }
   ```
 
 ---
 
-#### 2. `GET /summary/week`
-- **Purpose:** Returns a trusted summary snapshot for the current week (completion rate, active streak, and exercise counts).
-- **Headers:** Optional/Bearer token.
+#### `GET /summary/week` ✅ Live
+- **Purpose:** Returns an authoritative weekly summary for the authenticated user.
+- **Headers:** `Authorization: Bearer <supabase_access_token>`
 - **Response (`200 OK`):**
   ```json
   {
-    "status": "placeholder",
-    "message": "Weekly summary endpoint. Will compute trusted weekly volume, streak, and completion rate.",
-    "data": {
-      "week_start_date": "2026-09-07",
-      "week_end_date": "2026-09-13",
-      "completion_rate": 0,
-      "streak_weeks": 0,
-      "total_planned_exercises": 0,
-      "total_completed_exercises": 0
-    }
+    "user_id": "c1f7289b-7341-477d-b541-d8ec77598c11",
+    "week_start_date": "2026-09-08",
+    "total_minutes": 142,
+    "daily_streak": 4,
+    "workouts_this_week": 5,
+    "total_workouts_logged": 23
   }
   ```
+- **Streak logic:** `backend/utils/streak.js::calculateDailyStreak` — consecutive days (today or yesterday) with ≥ 1 `workout_log` entry.
+- **Minute calculation:** Sums `actual_duration_min` from cardio logs; estimates `actual_sets × 2 min` for strength logs without duration.
+- **Error responses:** `401` — missing/invalid token; `500` — admin client misconfigured or query failure.
 
 ---
 
@@ -443,13 +440,34 @@ The project uses a unified configuration standard detailed authoritatively in [`
 
 ## 8. Deployment plan
 
-| Piece       | Local (early)               | Cloud (final)                               |
-| ----------- | --------------------------- | ------------------------------------------- |
-| Front end   | Vite dev server (`:5173`)   | Vercel                                      |
-| Data & auth | Supabase cloud              | Supabase cloud                              |
-| Backend     | Node.js + Express in Docker | Docker image in Amazon ECR → AWS App Runner |
+| Piece       | Local (dev)                | Cloud (production)                                  |
+| ----------- | -------------------------- | --------------------------------------------------- |
+| Front end   | Vite dev server (`:5173`)  | **Vercel** — auto-deploys on every push to `main`   |
+| Data & auth | Supabase cloud             | **Supabase cloud** (same project, all environments) |
+| Backend     | Node.js + Express in Docker| **Docker → Amazon ECR → AWS ECS (Fargate)**         |
 
-The frontend is developed and tested locally before being deployed to Vercel. Supabase provides the cloud database and authentication throughout development and production. The backend is containerized with Docker locally, pushed to Amazon ECR, and deployed as a containerized service on AWS App Runner.
+### CI/CD Pipeline (`.github/workflows/ci.yml`)
+
+Every push to `main` triggers two jobs:
+
+**`frontend-ci`** (pushes touching `frontend/**`):
+1. `npm ci` → install dependencies
+2. `npm run lint` → OxLint (required check)
+3. `npm run build` → Vite production build (required check)
+
+**`deploy-backend`** (pushes to `main` only, touching `backend/**`):
+1. Configure AWS credentials (`aws-actions/configure-aws-credentials@v4`)
+2. Log in to Amazon ECR (`aws-actions/amazon-ecr-login@v2`)
+3. Build Docker image for `linux/amd64` (required for ECS Fargate)
+4. Push image to ECR tagged `:sha` (git SHA) and `:latest`
+5. Force-deploy ECS service (`aws ecs update-service --force-new-deployment`)
+
+### Live URLs
+
+| Service | URL |
+|---|---|
+| Backend API | `https://fi-86eb39c4d24d48df9757700cee848968.ecs.us-east-1.on.aws` |
+| Frontend | `https://fitness-tracker-xi-eosin.vercel.app` |
 
 ---
 
@@ -499,6 +517,21 @@ The frontend is developed and tested locally before being deployed to Vercel. Su
   - **Why:** Temporary Week 4 mock data was purged to ensure the repository remains tidy, maintainable, and strictly tied to real Postgres tables with Row Level Security.
   - **Rejected alternative:** Maintaining dual mock/live data branches in code.
   - **Why rejected:** Created cognitive overhead, dead code debt, and confusion about active data sources.
+
+- **Decision:** AWS ECS (Fargate) over AWS App Runner for backend hosting.
+  - **Why:** ECS provides finer control over networking, VPC placement, IAM task execution roles, and environment injection — all required for production secret management via Secrets Manager.
+  - **Rejected alternative:** AWS App Runner.
+  - **Why rejected:** App Runner's managed model limits certain task-definition controls needed for this stack.
+
+- **Decision:** GitOps via GitHub Actions (`deploy-backend` job).
+  - **Why:** Every push to `backend/**` on `main` automatically builds a `linux/amd64` Docker image, pushes to ECR (`:sha` + `:latest`), and force-deploys ECS. Zero manual container management after initial setup.
+  - **Rejected alternative:** Manual `docker push` + `aws ecs update-service` from a developer machine.
+  - **Why rejected:** Error-prone, not reproducible, and blocked by local environment differences.
+
+- **Decision:** Comma-separated `CORS_ORIGIN` environment variable.
+  - **Why:** Allows `https://app.vercel.app,http://localhost:5173` in one variable without code changes across environments.
+  - **Rejected alternative:** Hardcoded origins or separate `CORS_ORIGIN_1`, `CORS_ORIGIN_2` variables.
+  - **Why rejected:** Hardcoding requires code changes per environment; multiple variables are verbose and hard to maintain.
 
 ---
 
@@ -562,15 +595,18 @@ frontend/src/
 │   ├── WeightChart/        # SVG line chart for weigh-in history
 │   ├── WorkoutCard/        # Daily workout summary overview card
 │   ├── WorkoutLogForm/     # Modal form for logging sets, reps, weight, and cardio
-│   └── YouTubeEmbed/       # Responsive YouTube video container
+│   └── YouTubeEmbed/       # Responsive YouTube video container with fallback link
 ├── context/
-│   └── AuthContext.jsx     # Supabase Auth provider, session observer, and hooks
+│   ├── AuthContext.jsx     # Supabase Auth provider, session observer, signIn/Out methods
+│   ├── authContextDef.js   # React.createContext() definition (separated for Fast Refresh)
+│   └── useAuth.js          # Custom hook: useContext(AuthContext)
 ├── lib/
 │   ├── supabase.js         # Initialized Supabase browser client singleton
-│   ├── plans.js            # Plan template generation and schedule fetchers
+│   ├── plans.js            # Plan template generation (12-template lookup) & schedule fetchers
 │   ├── exercises.js        # Exercise library fetcher and local fallback catalog
-│   ├── workoutLogs.js      # Workout log insertion, update, and history queries
-│   └── userProfile.js      # Profile retrieval, updates, and weigh-in logging
+│   ├── streak.js           # Client-side daily streak calculator (mirrors server algorithm)
+│   ├── workoutLogs.js      # Workout log insertion and history queries
+│   └── userProfile.js      # Profile retrieval, upsert, weigh-in logging & weight history
 ├── pages/
 │   ├── Landing/            # Public marketing and sign-in screen
 │   ├── Dashboard/          # Today's workout and status dashboard
