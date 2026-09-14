@@ -78,9 +78,10 @@ jobs:
   # Triggers only when backend/** files change on main.
   #
   # Required GitHub Secrets (repo Settings → Secrets → Actions):
-  #   AWS_ACCESS_KEY_ID       — IAM user access key
-  #   AWS_SECRET_ACCESS_KEY   — IAM user secret key
   #   AWS_REGION              — e.g. us-east-1
+  #   AWS_ROLE_TO_ASSUME      — IAM role ARN for GitHub OIDC (recommended)
+  #   AWS_ACCESS_KEY_ID       — IAM user access key (fallback if no AWS_ROLE_TO_ASSUME)
+  #   AWS_SECRET_ACCESS_KEY   — IAM user secret key (fallback if no AWS_ROLE_TO_ASSUME)
   #   ECR_REGISTRY            — ACCOUNT.dkr.ecr.REGION.amazonaws.com
   #   ECR_REPOSITORY          — fitness-backend
   #   ECS_CLUSTER             — e.g. default
@@ -89,6 +90,9 @@ jobs:
   deploy-backend:
     name: Build & push backend → deploy ECS
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     # Only run on pushes to main (not on PRs — PRs just run frontend-ci)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
@@ -96,12 +100,47 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: Normalize static AWS credentials
+        id: static-aws
+        if: ${{ secrets.AWS_ROLE_TO_ASSUME == '' }}
+        env:
+          RAW_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          RAW_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          RAW_AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          trim() {
+            printf '%s' "$1" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'
+          }
+
+          AWS_ACCESS_KEY_ID="$(trim "$RAW_AWS_ACCESS_KEY_ID")"
+          AWS_SECRET_ACCESS_KEY="$(trim "$RAW_AWS_SECRET_ACCESS_KEY")"
+          AWS_REGION="$(trim "$RAW_AWS_REGION")"
+
+          if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ] || [ -z "$AWS_REGION" ]; then
+            echo "::error::Missing AWS deploy secrets. Set AWS_REGION and either AWS_ROLE_TO_ASSUME or static AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY."
+            exit 1
+          fi
+
+          echo "::add-mask::$AWS_ACCESS_KEY_ID"
+          echo "::add-mask::$AWS_SECRET_ACCESS_KEY"
+          echo "aws-access-key-id=$AWS_ACCESS_KEY_ID" >> "$GITHUB_OUTPUT"
+          echo "aws-secret-access-key=$AWS_SECRET_ACCESS_KEY" >> "$GITHUB_OUTPUT"
+          echo "aws-region=$AWS_REGION" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS credentials (OIDC)
+        if: ${{ secrets.AWS_ROLE_TO_ASSUME != '' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+
+      - name: Configure AWS credentials (static access key fallback)
+        if: ${{ secrets.AWS_ROLE_TO_ASSUME == '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ steps.static-aws.outputs.aws-access-key-id }}
+          aws-secret-access-key: ${{ steps.static-aws.outputs.aws-secret-access-key }}
+          aws-region: ${{ steps.static-aws.outputs.aws-region }}
 
       - name: Log in to Amazon ECR
         id: login-ecr
@@ -131,4 +170,3 @@ jobs:
             --query 'service.serviceName' \
             --output text
           echo "✅ ECS deployment triggered for $SERVICE"
-

@@ -70,8 +70,9 @@ For full details and secret management instructions, see [`docs/CONFIG_AND_SECRE
 
 | Secret | Value |
 |---|---|
-| `AWS_ACCESS_KEY_ID` | IAM user access key |
-| `AWS_SECRET_ACCESS_KEY` | IAM user secret key |
+| `AWS_ROLE_TO_ASSUME` | IAM role ARN for GitHub OIDC (**recommended**) |
+| `AWS_ACCESS_KEY_ID` | IAM user access key (fallback if no `AWS_ROLE_TO_ASSUME`) |
+| `AWS_SECRET_ACCESS_KEY` | IAM user secret key (fallback if no `AWS_ROLE_TO_ASSUME`) |
 | `AWS_REGION` | `us-east-1` |
 | `ECR_REGISTRY` | `826136930769.dkr.ecr.us-east-1.amazonaws.com` |
 | `ECR_REPOSITORY` | `fitness-backend` |
