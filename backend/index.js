@@ -150,3 +150,9 @@ if (require.main === module) {
 }
 
 module.exports = { app, config };
+
+/*
+Received SIGTERM. Shutting down gracefully...
+HTTP server closed.
+Backend server running on http://localhost:8000 (development)
+*/
