@@ -96,39 +96,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Trim whitespace from secrets — copy-paste into GitHub Secrets UI
-      # silently adds trailing spaces/newlines that break AWS signature validation.
-      - name: Sanitize AWS secrets
-        id: aws-creds
-        env:
-          RAW_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          RAW_SECRET: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          RAW_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          KEY_ID="$(printf '%s' "$RAW_KEY_ID" | tr -d '[:space:]')"
-          SECRET="$(printf '%s' "$RAW_SECRET" | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
-          REGION="$(printf '%s' "$RAW_REGION" | tr -d '[:space:]')"
-
-          if [ -z "$KEY_ID" ] || [ -z "$SECRET" ] || [ -z "$REGION" ]; then
-            echo "::error::One or more AWS secrets (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION) are empty. Check repo Settings → Secrets → Actions."
-            exit 1
-          fi
-
-          echo "::add-mask::$KEY_ID"
-          echo "::add-mask::$SECRET"
-          echo "key-id=$KEY_ID"     >> "$GITHUB_OUTPUT"
-          echo "secret=$SECRET"     >> "$GITHUB_OUTPUT"
-          echo "region=$REGION"     >> "$GITHUB_OUTPUT"
-          echo "Key ID length:  ${#KEY_ID}"
-          echo "Secret length:  ${#SECRET}"
-          echo "Region:         $REGION"
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ steps.aws-creds.outputs.key-id }}
-          aws-secret-access-key: ${{ steps.aws-creds.outputs.secret }}
-          aws-region: ${{ steps.aws-creds.outputs.region }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Log in to Amazon ECR
         id: login-ecr
@@ -140,7 +113,6 @@ jobs:
           REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Build for linux/amd64 — required for ECS even on arm64 runners
           docker build --platform linux/amd64 -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -t $REGISTRY/$REPOSITORY:latest ./backend
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           docker push $REGISTRY/$REPOSITORY:latest
