@@ -1,14 +1,5 @@
 import { useState } from 'react';
-import {
-  Activity,
-  ArrowRight,
-  Check,
-  Eye,
-  EyeOff,
-  LockKeyhole,
-  Mail,
-  Phone,
-} from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { useAuth } from '../../context/useAuth';
 import { Logo } from '../../components/Sidebar/Sidebar';
 import PerformanceVisual from '../../components/PerformanceVisual/PerformanceVisual';
@@ -42,25 +33,21 @@ function GoogleIcon() {
 
 /**
  * FitTrack 2.0 Landing & Auth Experience
- * Split-screen layout with glowing PerformanceVisual and interactive sign-in/register tracks.
+ * Split-screen layout with glowing PerformanceVisual and Google OAuth sign-in/sign-up.
  */
 export default function Landing() {
   const { signInWithGoogle } = useAuth();
   const [mode, setMode] = useState('login'); // 'login' | 'register'
-  const [method, setMethod] = useState('email'); // 'email' | 'phone'
-  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
-  // Form submit handler triggers Google OAuth flow
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleGoogleClick = async () => {
     setSubmitting(true);
-    setSubmitted(true);
-    setTimeout(async () => {
+    try {
       await signInWithGoogle();
+    } catch (err) {
+      console.error('Google authentication error:', err);
       setSubmitting(false);
-    }, 450);
+    }
   };
 
   return (
@@ -119,117 +106,16 @@ export default function Landing() {
               type="button"
               id="landing-signin-btn"
               className="google-button"
-              onClick={signInWithGoogle}
+              onClick={handleGoogleClick}
+              disabled={submitting}
             >
               <GoogleIcon />
-              <span>Continue with Google</span>
+              <span>{submitting ? 'Connecting...' : 'Continue with Google'}</span>
             </button>
 
-            <div className="auth-divider">
-              <span>or sign in with credentials</span>
-            </div>
-
-            {/* Email / Phone Method Switcher */}
-            <div className="auth-methods" role="tablist" aria-label="Sign-in method">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={method === 'email'}
-                className={`auth-method-btn ${method === 'email' ? 'auth-method-btn--active' : ''}`}
-                onClick={() => setMethod('email')}
-              >
-                <Mail size={14} aria-hidden="true" />
-                <span>Email</span>
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={method === 'phone'}
-                className={`auth-method-btn ${method === 'phone' ? 'auth-method-btn--active' : ''}`}
-                onClick={() => setMethod('phone')}
-              >
-                <Phone size={14} aria-hidden="true" />
-                <span>Phone</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="auth-form">
-              {method === 'email' ? (
-                <div className="auth-field">
-                  <label htmlFor="login-email">Email address</label>
-                  <div className="auth-input-shell">
-                    <Mail size={17} className="auth-input-icon" aria-hidden="true" />
-                    <input
-                      id="login-email"
-                      type="email"
-                      placeholder="athlete@example.com"
-                      required
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="auth-field">
-                  <label htmlFor="login-phone">Phone number</label>
-                  <div className="auth-input-shell">
-                    <Phone size={17} className="auth-input-icon" aria-hidden="true" />
-                    <input
-                      id="login-phone"
-                      type="tel"
-                      placeholder="+1 (555) 000-0000"
-                      required
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="auth-field">
-                <div className="auth-label-row">
-                  <label htmlFor="login-password">Password</label>
-                  <button
-                    type="button"
-                    className="auth-link-btn"
-                    onClick={signInWithGoogle}
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-                <div className="auth-input-shell">
-                  <LockKeyhole size={17} className="auth-input-icon" aria-hidden="true" />
-                  <input
-                    id="login-password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="auth-password-toggle"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className={`primary-button auth-submit ${submitted ? 'auth-submit--submitted' : ''}`}
-                disabled={submitting}
-              >
-                {submitted ? (
-                  <>
-                    <Check size={18} aria-hidden="true" />
-                    <span>Signing in...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Sign in</span>
-                    <ArrowRight size={16} aria-hidden="true" />
-                  </>
-                )}
-              </button>
-            </form>
+            <p className="auth-disclaimer">
+              Single-click sign in with your Google account.
+            </p>
 
             <p className="auth-switch">
               <span>New to FitTrack?</span>
@@ -258,123 +144,18 @@ export default function Landing() {
             {/* Primary Google Auth Sign Up */}
             <button
               type="button"
+              id="landing-signup-btn"
               className="google-button"
-              onClick={signInWithGoogle}
+              onClick={handleGoogleClick}
+              disabled={submitting}
             >
               <GoogleIcon />
-              <span>Sign up with Google</span>
+              <span>{submitting ? 'Connecting...' : 'Sign up with Google'}</span>
             </button>
 
-            <div className="auth-divider">
-              <span>or create with email</span>
-            </div>
-
-            {/* Method switch */}
-            <div className="auth-methods" role="tablist" aria-label="Sign-up method">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={method === 'email'}
-                className={`auth-method-btn ${method === 'email' ? 'auth-method-btn--active' : ''}`}
-                onClick={() => setMethod('email')}
-              >
-                <Mail size={14} aria-hidden="true" />
-                <span>Email</span>
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={method === 'phone'}
-                className={`auth-method-btn ${method === 'phone' ? 'auth-method-btn--active' : ''}`}
-                onClick={() => setMethod('phone')}
-              >
-                <Phone size={14} aria-hidden="true" />
-                <span>Phone</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="auth-form">
-              <div className="auth-field">
-                <label htmlFor="register-name">Full name</label>
-                <div className="auth-input-shell">
-                  <input
-                    id="register-name"
-                    type="text"
-                    placeholder="Athlete Name"
-                    required
-                  />
-                </div>
-              </div>
-
-              {method === 'email' ? (
-                <div className="auth-field">
-                  <label htmlFor="register-email">Email address</label>
-                  <div className="auth-input-shell">
-                    <Mail size={17} className="auth-input-icon" aria-hidden="true" />
-                    <input
-                      id="register-email"
-                      type="email"
-                      placeholder="athlete@example.com"
-                      required
-                    />
-                  </div>
-                </div>
-              ) : (
-                <div className="auth-field">
-                  <label htmlFor="register-phone">Phone number</label>
-                  <div className="auth-input-shell">
-                    <Phone size={17} className="auth-input-icon" aria-hidden="true" />
-                    <input
-                      id="register-phone"
-                      type="tel"
-                      placeholder="+1 (555) 000-0000"
-                      required
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="auth-field">
-                <label htmlFor="register-password">Create password</label>
-                <div className="auth-input-shell">
-                  <LockKeyhole size={17} className="auth-input-icon" aria-hidden="true" />
-                  <input
-                    id="register-password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="At least 8 characters"
-                    minLength={8}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="auth-password-toggle"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-
-              <label className="auth-terms">
-                <input type="checkbox" required />
-                <span className="auth-terms__box">
-                  <Check size={12} aria-hidden="true" />
-                </span>
-                <span className="auth-terms__text">
-                  I agree to the Terms of Service and Privacy Policy.
-                </span>
-              </label>
-
-              <button
-                type="submit"
-                className="primary-button auth-submit"
-                disabled={submitting}
-              >
-                <span>Create account</span>
-                <ArrowRight size={16} aria-hidden="true" />
-              </button>
-            </form>
+            <p className="auth-disclaimer">
+              By joining FitTrack, you agree to the Terms of Service and Privacy Policy.
+            </p>
 
             <p className="auth-switch">
               <span>Already a member?</span>

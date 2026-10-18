@@ -355,6 +355,74 @@
   margin-top: 20px;
 }
 
+.weight-stats-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.weight-stat-item {
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-hover);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.weight-stat-label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.weight-stat-value {
+  font-size: 20px;
+  color: var(--text);
+  font-family: var(--serif);
+}
+
+.weight-history-feed {
+  margin-top: 28px;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+}
+
+.weight-feed-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.weight-entries-list {
+  display: grid;
+  gap: 8px;
+}
+
+.weight-entry-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.weight-entry-date {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.weight-entry-val {
+  font-size: 13px;
+  color: var(--text);
+}
+
 /* ── Activity History Feed ── */
 .progress-history-section {
   margin-top: 32px;

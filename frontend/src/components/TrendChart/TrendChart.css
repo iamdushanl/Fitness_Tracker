@@ -27,3 +27,30 @@
   stroke-width: 8;
   filter: drop-shadow(0 0 6px rgba(185, 243, 75, 0.5));
 }
+
+.trend-chart-wrap {
+  width: 100%;
+}
+
+.trend-chart-caption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--faint);
+  letter-spacing: 0.02em;
+}
+
+.trend-chart-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--surface-hover);
+  color: var(--muted);
+  border: 1px solid var(--line);
+}

@@ -487,6 +487,71 @@
   gap: 12px;
 }
 
+/* ── Empty Workout Guard Confirmation Dialog ── */
+.empty-guard-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.empty-guard-card {
+  padding: 40px 32px 32px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  text-align: center;
+  max-width: 480px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.empty-guard-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: rgba(251, 188, 5, 0.12);
+  color: #fbbc05;
+  margin-bottom: 16px;
+}
+
+.empty-guard-title {
+  font-family: var(--serif);
+  font-size: 26px;
+  color: var(--text);
+  margin: 6px 0 10px;
+}
+
+.empty-guard-desc {
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+  margin: 0 0 24px;
+}
+
+.empty-guard-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.empty-guard-actions .primary-button,
+.empty-guard-actions .secondary-button {
+  width: 100%;
+  justify-content: center;
+}
+
 /* ── Responsive Mobile ── */
 @media (max-width: 768px) {
   .exercise-layout {

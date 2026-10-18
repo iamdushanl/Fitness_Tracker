@@ -7,15 +7,9 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/useAuth';
 import { fetchUserProfile, saveUserProfile } from '../../lib/userProfile';
+import { FITNESS_GOALS, normalizeGoal, getGoalLabel } from '../../lib/goals';
 import StateScreen from '../../components/StateScreen/StateScreen';
 import './Profile.css';
-
-const GOAL_OPTIONS = [
-  { id: 'build_strength', label: 'Build Strength' },
-  { id: 'hypertrophy', label: 'Muscle Hypertrophy' },
-  { id: 'general_fitness', label: 'General Fitness & Conditioning' },
-  { id: 'fat_loss', label: 'Fat Loss & Definition' },
-];
 
 const EXPERIENCE_OPTIONS = [
   { id: 'beginner', label: 'Beginner (0–1 years)' },
@@ -41,7 +35,7 @@ export default function Profile() {
     height_cm: '',
     weight_kg: '',
     experience_level: 'intermediate',
-    fitness_goal: 'build_strength',
+    fitness_goal: 'general_fitness',
   });
 
   useEffect(() => {
@@ -59,7 +53,7 @@ export default function Profile() {
             height_cm: data.height_cm != null ? String(data.height_cm) : '',
             weight_kg: data.weight_kg != null ? String(data.weight_kg) : '',
             experience_level: data.experience_level || 'intermediate',
-            fitness_goal: data.fitness_goal || 'build_strength',
+            fitness_goal: normalizeGoal(data.fitness_goal),
           });
         }
       } catch (err) {
@@ -91,9 +85,7 @@ export default function Profile() {
     .map((word) => word[0].toUpperCase())
     .join('') || 'AT';
 
-  const goalLabel =
-    GOAL_OPTIONS.find((g) => g.id === profile?.fitness_goal)?.label ||
-    'Strength & Conditioning';
+  const goalLabel = getGoalLabel(profile?.fitness_goal);
 
   const expLabel =
     EXPERIENCE_OPTIONS.find((e) => e.id === profile?.experience_level)?.label ||
@@ -109,7 +101,7 @@ export default function Profile() {
         height_cm: formData.height_cm ? Number(formData.height_cm) : null,
         weight_kg: formData.weight_kg ? Number(formData.weight_kg) : null,
         experience_level: formData.experience_level,
-        fitness_goal: formData.fitness_goal,
+        fitness_goal: normalizeGoal(formData.fitness_goal),
       };
 
       const { data, error: err } = await saveUserProfile(payload);
@@ -191,17 +183,17 @@ export default function Profile() {
             </div>
             <div className="settings-row">
               <span>Body Weight</span>
-              <strong>{profile?.weight_kg ? `${profile.weight_kg} kg` : '72.5 kg'}</strong>
+              <strong>{profile?.weight_kg ? `${profile.weight_kg} kg` : 'Not set'}</strong>
               <ChevronRight size={17} aria-hidden="true" />
             </div>
             <div className="settings-row">
               <span>Height</span>
-              <strong>{profile?.height_cm ? `${profile.height_cm} cm` : '178 cm'}</strong>
+              <strong>{profile?.height_cm ? `${profile.height_cm} cm` : 'Not set'}</strong>
               <ChevronRight size={17} aria-hidden="true" />
             </div>
             <div className="settings-row">
               <span>Age</span>
-              <strong>{profile?.age ? `${profile.age} yrs` : '28 yrs'}</strong>
+              <strong>{profile?.age ? `${profile.age} yrs` : 'Not set'}</strong>
               <ChevronRight size={17} aria-hidden="true" />
             </div>
           </div>
@@ -333,10 +325,10 @@ export default function Profile() {
                 <label htmlFor="edit-goal">Primary Fitness Goal</label>
                 <select
                   id="edit-goal"
-                  value={formData.fitness_goal}
+                  value={normalizeGoal(formData.fitness_goal)}
                   onChange={(e) => setFormData({ ...formData, fitness_goal: e.target.value })}
                 >
-                  {GOAL_OPTIONS.map((g) => (
+                  {FITNESS_GOALS.map((g) => (
                     <option key={g.id} value={g.id}>
                       {g.label}
                     </option>
