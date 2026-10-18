@@ -35,36 +35,6 @@
   max-width: 480px;
 }
 
-.recovery-tabs {
-  display: flex;
-  gap: 8px;
-}
-
-.recovery-tab-btn {
-  flex: 0 0 auto;
-  min-height: 36px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  padding: 0 16px;
-  background: var(--surface);
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.recovery-tab-btn:hover {
-  border-color: var(--line-strong);
-  color: var(--text);
-}
-
-.recovery-tab-btn.active {
-  background: var(--surface-hover);
-  color: var(--accent);
-  border-color: rgba(185, 243, 75, 0.3);
-}
-
 /* ── 2-Column Recovery Grid ── */
 .recovery-layout {
   display: grid;

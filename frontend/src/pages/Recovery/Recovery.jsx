@@ -11,8 +11,6 @@ import Ring from '../../components/Ring/Ring';
 import StateScreen from '../../components/StateScreen/StateScreen';
 import './Recovery.css';
 
-const RECOVERY_TABS = ['Recovery', 'Volume', 'Untrained'];
-
 const DEFAULT_MUSCLES = [
   { name: 'Chest', baseHours: 42, baseState: 'ready', baseVal: 88 },
   { name: 'Back', baseHours: 64, baseState: 'ready', baseVal: 94 },
@@ -26,7 +24,6 @@ const DEFAULT_MUSCLES = [
  * FitTrack 2.0 Biometric Muscle Recovery & Status View (/recovery)
  */
 export default function Recovery() {
-  const [activeTab, setActiveTab] = useState('Recovery');
   const [workoutLogs, setWorkoutLogs] = useState([]);
   const [planExercises, setPlanExercises] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -134,7 +131,7 @@ export default function Recovery() {
 
   return (
     <div className="recovery-page" id="recovery-page">
-      {/* ── Page Header & Tabs ── */}
+      {/* ── Page Header ── */}
       <section className="recovery-intro" aria-label="Recovery overview">
         <div>
           <span className="eyebrow">PERFORMANCE INTELLIGENCE</span>
@@ -142,23 +139,8 @@ export default function Recovery() {
             How ready is your body<br />for the next session?
           </h1>
           <p className="recovery-intro-text">
-            Dynamic recovery estimates combine volume, load, rest intervals, and elapsed recovery hours since your last session.
+            Activity-based estimates: Recovery readiness is estimated from the elapsed hours since each kinetic muscle group was last logged in your training sessions. This is an algorithmic scheduling heuristic, not a medical measurement.
           </p>
-        </div>
-
-        <div className="tabs recovery-tabs" role="tablist" aria-label="Recovery filters">
-          {RECOVERY_TABS.map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === tab}
-              className={`button recovery-tab-btn ${activeTab === tab ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
         </div>
       </section>
 
