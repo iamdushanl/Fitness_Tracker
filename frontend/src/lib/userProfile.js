@@ -143,3 +143,62 @@ export async function insertWeight(weight_kg) {
 
   return { data, error: null };
 }
+
+/**
+ * Calculates truthful body weight statistics and change label from history.
+ *
+ * @param {Array} weightHistory - Array of weight records with weight_kg and recorded_at
+ * @param {number|null} fallbackWeight - Optional fallback weight from athlete profile
+ * @returns {{ currentWeight: number|null, firstWeight: number|null, weightChange: number|null, totalEntries: number, changeLabel: string }}
+ */
+export function calculateWeightStats(weightHistory = [], fallbackWeight = null) {
+  const validEntries = (weightHistory ?? [])
+    .filter(
+      (entry) =>
+        entry &&
+        typeof entry.weight_kg === 'number' &&
+        !isNaN(entry.weight_kg) &&
+        entry.weight_kg > 0
+    )
+    .sort((a, b) => new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime());
+
+  if (validEntries.length === 0) {
+    const numFallback =
+      typeof fallbackWeight === 'number' && !isNaN(fallbackWeight) && fallbackWeight > 0
+        ? fallbackWeight
+        : null;
+    return {
+      currentWeight: numFallback,
+      firstWeight: null,
+      weightChange: null,
+      totalEntries: 0,
+      changeLabel: 'No weight recorded',
+    };
+  }
+
+  const firstWeight = validEntries[0].weight_kg;
+  const currentWeight = validEntries[validEntries.length - 1].weight_kg;
+
+  if (validEntries.length === 1) {
+    return {
+      currentWeight,
+      firstWeight,
+      weightChange: 0,
+      totalEntries: 1,
+      changeLabel: 'Baseline recorded',
+    };
+  }
+
+  const delta = Number((currentWeight - firstWeight).toFixed(1));
+  const changeLabel =
+    delta === 0 ? 'No net change' : `${delta > 0 ? '+' : ''}${delta} kg since first entry`;
+
+  return {
+    currentWeight,
+    firstWeight,
+    weightChange: delta,
+    totalEntries: validEntries.length,
+    changeLabel,
+  };
+}
+

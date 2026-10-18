@@ -11,9 +11,10 @@ import {
 } from 'lucide-react';
 import { fetchActivePlan } from '../../lib/plans';
 import { getExerciseById } from '../../lib/exercises';
-import { fetchUserProfile, fetchWeightHistory, insertWeight } from '../../lib/userProfile';
+import { fetchUserProfile, fetchWeightHistory, insertWeight, calculateWeightStats } from '../../lib/userProfile';
 import { fetchWorkoutLogs } from '../../lib/workoutLogs';
 import { calculateDailyStreak } from '../../lib/streak';
+import { calculateMuscleRecovery } from '../../lib/recovery';
 import TrendChart from '../../components/TrendChart/TrendChart';
 import WeightChart from '../../components/WeightChart/WeightChart';
 import StateScreen from '../../components/StateScreen/StateScreen';
@@ -81,26 +82,20 @@ export default function Progress() {
     loadProgressData();
   }, [loadProgressData]);
 
-  const currentWeight =
-    weightHistory.length > 0
-      ? weightHistory[weightHistory.length - 1].weight_kg
-      : profile?.weight_kg ?? null;
-
-  const weightChange =
-    weightHistory.length > 1
-      ? Number(
-          (
-            weightHistory[weightHistory.length - 1].weight_kg -
-            weightHistory[0].weight_kg
-          ).toFixed(1)
-        )
-      : 0;
+  // Truthful body weight stats and label ("since first entry", "Baseline recorded", "No weight recorded")
+  const { currentWeight, weightChange, changeLabel } = useMemo(
+    () => calculateWeightStats(weightHistory, profile?.weight_kg),
+    [weightHistory, profile?.weight_kg]
+  );
 
   const weightData = useMemo(() => {
-    return weightHistory.map((wh) => ({
-      date: wh.recorded_at,
-      weight_kg: wh.weight_kg,
-    }));
+    return (weightHistory ?? [])
+      .filter((wh) => wh && typeof wh.weight_kg === 'number' && !isNaN(wh.weight_kg))
+      .sort((a, b) => new Date(a.recorded_at).getTime() - new Date(b.recorded_at).getTime())
+      .map((wh) => ({
+        date: wh.recorded_at,
+        weight_kg: wh.weight_kg,
+      }));
   }, [weightHistory]);
 
   const streak = calculateDailyStreak(workoutLogs.map((wh) => wh.performed_at));
@@ -118,48 +113,19 @@ export default function Progress() {
   const volumeDisplay = totalTonnageKg > 0 ? `${(totalTonnageKg / 1000).toFixed(1)}t` : '0.0t';
 
   // Dynamic muscle recovery summary based on workout log timestamps
+  const { muscleList } = useMemo(
+    () => calculateMuscleRecovery(workoutLogs, planExercises, nowTimestamp),
+    [workoutLogs, planExercises, nowTimestamp]
+  );
+
   const muscleRecoverySummary = useMemo(() => {
-    const now = nowTimestamp;
-    const latestByMuscle = {};
-    for (const log of workoutLogs) {
-      const pe = planExercises.find((p) => p.id === log.plan_exercise_id);
-      const ex = pe?.exercise || getExerciseById(pe?.exercise_id);
-      if (ex?.muscle_group) {
-        const mg = ex.muscle_group.toLowerCase();
-        const time = new Date(log.performed_at).getTime();
-        if (!latestByMuscle[mg] || time > latestByMuscle[mg]) {
-          latestByMuscle[mg] = time;
-        }
-      }
-    }
-
-    const groups = [
-      { name: 'Chest', key: 'chest', defaultState: 'ready' },
-      { name: 'Back', key: 'back', defaultState: 'ready' },
-      { name: 'Legs', key: 'legs', defaultState: 'warm' },
-      { name: 'Shoulders', key: 'shoulders', defaultState: 'ready' },
-    ];
-
-    return groups.map((g) => {
-      const latest = latestByMuscle[g.key];
-      let state = g.defaultState;
+    return muscleList.map((m) => {
       let label = 'Recovered';
-      if (latest) {
-        const diffHours = (now - latest) / (1000 * 60 * 60);
-        if (diffHours < 20) {
-          state = 'tired';
-          label = 'Fatigued';
-        } else if (diffHours < 40) {
-          state = 'warm';
-          label = 'Recovering';
-        } else {
-          state = 'ready';
-          label = 'Recovered';
-        }
-      }
-      return { name: g.name, state, label };
+      if (m.state === 'tired') label = 'Fatigued';
+      else if (m.state === 'warm') label = 'Recovering';
+      return { name: m.name, state: m.state, label };
     });
-  }, [workoutLogs, planExercises, nowTimestamp]);
+  }, [muscleList]);
 
   // Handle logging new weight
   const handleLogWeight = async (e) => {
@@ -320,11 +286,7 @@ export default function Progress() {
                   <div className="metric-bw-text">
                     <span>Body weight</span>
                     <strong>{currentWeight ? `${currentWeight} kg` : '—'}</strong>
-                    <em>
-                      {weightChange !== 0
-                        ? `${weightChange > 0 ? '+' : ''}${weightChange} kg since start`
-                        : currentWeight ? 'Baseline established' : 'No weight recorded'}
-                    </em>
+                    <em>{changeLabel}</em>
                   </div>
                   <button
                     type="button"

@@ -183,17 +183,17 @@ export default function Profile() {
             </div>
             <div className="settings-row">
               <span>Body Weight</span>
-              <strong>{profile?.weight_kg ? `${profile.weight_kg} kg` : '72.5 kg'}</strong>
+              <strong>{profile?.weight_kg ? `${profile.weight_kg} kg` : 'Not set'}</strong>
               <ChevronRight size={17} aria-hidden="true" />
             </div>
             <div className="settings-row">
               <span>Height</span>
-              <strong>{profile?.height_cm ? `${profile.height_cm} cm` : '178 cm'}</strong>
+              <strong>{profile?.height_cm ? `${profile.height_cm} cm` : 'Not set'}</strong>
               <ChevronRight size={17} aria-hidden="true" />
             </div>
             <div className="settings-row">
               <span>Age</span>
-              <strong>{profile?.age ? `${profile.age} yrs` : '28 yrs'}</strong>
+              <strong>{profile?.age ? `${profile.age} yrs` : 'Not set'}</strong>
               <ChevronRight size={17} aria-hidden="true" />
             </div>
           </div>

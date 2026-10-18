@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Play,
@@ -12,10 +12,12 @@ import {
   Zap,
   Sparkles,
 } from 'lucide-react';
-import { fetchUserProfile, fetchWeightHistory } from '../../lib/userProfile';
+import { fetchUserProfile, fetchWeightHistory, calculateWeightStats } from '../../lib/userProfile';
 import { fetchActivePlan } from '../../lib/plans';
 import { fetchWorkoutLogs } from '../../lib/workoutLogs';
 import { calculateDailyStreak } from '../../lib/streak';
+import { calculateMuscleRecovery } from '../../lib/recovery';
+import { getExerciseById } from '../../lib/exercises';
 import PerformanceVisual from '../../components/PerformanceVisual/PerformanceVisual';
 import Ring from '../../components/Ring/Ring';
 import TrendChart from '../../components/TrendChart/TrendChart';
@@ -98,32 +100,41 @@ export default function Dashboard() {
   // Today ISO string
   const today = new Date().toISOString().split('T')[0];
 
-  // Calculate completion rate: logged exercises / total plan exercises
-  const totalPlanExercises = planExercises.length;
-  const loggedExercises = workoutLogs.length;
-  const completionRate =
-    totalPlanExercises > 0
-      ? Math.min(100, Math.round((loggedExercises / totalPlanExercises) * 100))
-      : 0;
+  // Truthful body weight stats and label ("since first entry", "Baseline recorded", "No weight recorded")
+  const { currentWeight, changeLabel } = useMemo(
+    () => calculateWeightStats(weightHistory, profile?.weight_kg),
+    [weightHistory, profile?.weight_kg]
+  );
 
-  // Calculate daily streak dynamically from logged workout timestamps
+  // Dynamic daily streak from logged workout timestamps
   const streak = calculateDailyStreak(workoutLogs.map((l) => l.performed_at));
 
-  // Weight stats
-  const currentWeight =
-    weightHistory.length > 0
-      ? weightHistory[weightHistory.length - 1].weight_kg
-      : profile?.weight_kg ?? 70.0;
+  // Dynamic muscle recovery & neuromuscular readiness (unified with Recovery page)
+  const { muscleList, readinessScore, readinessCategory, readinessAdvice } = useMemo(
+    () => calculateMuscleRecovery(workoutLogs, planExercises),
+    [workoutLogs, planExercises]
+  );
 
-  const weightChange =
-    weightHistory.length > 1
-      ? Number(
-          (
-            weightHistory[weightHistory.length - 1].weight_kg -
-            weightHistory[0].weight_kg
-          ).toFixed(1)
-        )
-      : 0;
+  // Key muscle status bars (Chest, Back, Legs) for Dashboard readiness panel
+  const keyMuscles = useMemo(() => {
+    const targets = ['Chest', 'Back', 'Legs'];
+    return targets.map((name) => {
+      const found = muscleList.find((m) => m.name === name);
+      return found || { name, value: 85, state: 'ready' };
+    });
+  }, [muscleList]);
+
+  // Total volume load from workout logs
+  const totalTonnageKg = useMemo(() => {
+    return workoutLogs.reduce((acc, log) => {
+      const sets = log.actual_sets || 1;
+      const reps = log.actual_reps || 1;
+      const weight = log.actual_weight_kg || 0;
+      return acc + sets * reps * weight;
+    }, 0);
+  }, [workoutLogs]);
+
+  const volumeDisplay = totalTonnageKg > 0 ? `${(totalTonnageKg / 1000).toFixed(1)}t` : '0.0t';
 
   // Count logged exercises per date
   const completedPerDate = {};
@@ -141,8 +152,14 @@ export default function Dashboard() {
   const hasPlan = allDates.length > 0;
   const isTodayWorkoutDay = todayExercises.length > 0;
 
-  // Dynamic readiness score (baseline 75% + streak bonus, capped at 96%)
-  const readinessScore = Math.min(96, Math.max(65, 74 + Math.min(18, streak * 3)));
+  // Estimated workout duration based on programmed movements and sets
+  const estimatedWorkoutMinutes = isTodayWorkoutDay
+    ? todayExercises.reduce((acc, ex) => {
+        if (ex.target_duration_min) return acc + ex.target_duration_min;
+        const sets = ex.target_sets || ex.sets || 3;
+        return acc + sets * 3;
+      }, 0)
+    : 0;
 
   // Generate 7 calendar days for the current week
   const weekDays = (() => {
@@ -179,12 +196,39 @@ export default function Dashboard() {
   const completedDaysCount = weekDays.filter((d) => d.isDone).length;
   const plannedDaysCount = Math.max(1, weekDays.filter((d) => d.state === 'planned' || d.isDone || d.state === 'today').length);
 
-  // Best recent lift or PR from workoutLogs
-  const bestLog = workoutLogs.reduce((best, log) => {
-    const volume = (log.weight_kg ?? 0) * (log.reps ?? 0);
-    const bestVolume = (best?.weight_kg ?? 0) * (best?.reps ?? 0);
-    return volume > bestVolume ? log : best;
-  }, workoutLogs[0] || null);
+  // Unit-consistent completion metrics:
+  // 1. Goal pace: % of scheduled exercises in plan that have at least 1 completed set
+  const totalPlanExercises = planExercises.length;
+  const completedExerciseIds = new Set(workoutLogs.map((l) => l.plan_exercise_id));
+  const completedExercisesCount = planExercises.filter((pe) => completedExerciseIds.has(pe.id)).length;
+  const exerciseCompletionRate =
+    totalPlanExercises > 0
+      ? Math.min(100, Math.round((completedExercisesCount / totalPlanExercises) * 100))
+      : 0;
+
+  // 2. Weekly training pace: % of planned workout days completed
+  const weeklyWorkoutPace =
+    plannedDaysCount > 0
+      ? Math.min(100, Math.round((completedDaysCount / plannedDaysCount) * 100))
+      : 0;
+
+  // Best recent lift or highlight from actual workout logs
+  const bestLog = useMemo(() => {
+    if (!workoutLogs || workoutLogs.length === 0) return null;
+    return workoutLogs.reduce((best, log) => {
+      const weight = log.actual_weight_kg ?? 0;
+      const reps = log.actual_reps ?? 0;
+      const volume = weight * reps;
+      const bestVolume = (best?.actual_weight_kg ?? 0) * (best?.actual_reps ?? 0);
+      return volume > bestVolume ? log : best;
+    }, workoutLogs[0]);
+  }, [workoutLogs]);
+
+  const bestExercise = useMemo(() => {
+    if (!bestLog) return null;
+    const pe = planExercises.find((p) => p.id === bestLog.plan_exercise_id);
+    return pe?.exercise || getExerciseById(pe?.exercise_id) || null;
+  }, [bestLog, planExercises]);
 
   /* ── Loading state ── */
   if (loading) {
@@ -263,7 +307,7 @@ export default function Dashboard() {
                 </span>
                 <span className="workout-time">
                   <Clock3 size={15} aria-hidden="true" />
-                  <span>~45 min</span>
+                  <span>{isTodayWorkoutDay ? `~${estimatedWorkoutMinutes} min` : 'Rest day'}</span>
                 </span>
               </div>
 
@@ -295,7 +339,7 @@ export default function Dashboard() {
                   <span>Working sets</span>
                 </div>
                 <div>
-                  <strong>{completionRate}%</strong>
+                  <strong>{exerciseCompletionRate}%</strong>
                   <span>Goal pace</span>
                 </div>
               </div>
@@ -348,11 +392,11 @@ export default function Dashboard() {
                   <strong>{completedDaysCount} of {plannedDaysCount} workouts</strong>
                   <span>Weekly training pace</span>
                 </div>
-                <span>{completionRate}%</span>
+                <span>{weeklyWorkoutPace}%</span>
               </div>
 
               <div className="progress-track" aria-hidden="true">
-                <span style={{ width: `${completionRate}%` }} />
+                <span style={{ width: `${weeklyWorkoutPace}%` }} />
               </div>
             </div>
 
@@ -364,16 +408,18 @@ export default function Dashboard() {
               <div className="pr-content">
                 <span className="eyebrow">Recent highlight</span>
                 <h4 className="pr-title">
-                  {bestLog?.exercise?.name || 'Compound Progress'}
+                  {bestExercise?.name || (bestLog ? 'Logged session' : 'No sessions logged')}
                 </h4>
                 <strong className="pr-value">
-                  {bestLog?.weight_kg
-                    ? `${bestLog.weight_kg} kg × ${bestLog.reps || 1}`
-                    : `${loggedExercises} sets logged`}
+                  {bestLog?.actual_weight_kg
+                    ? `${bestLog.actual_weight_kg} kg × ${bestLog.actual_reps || 1}`
+                    : workoutLogs.length > 0
+                      ? `${workoutLogs.length} sets logged`
+                      : 'Awaiting first workout'}
                 </strong>
-                <span className="positive">
+                <span className={workoutLogs.length > 0 ? 'positive' : 'neutral'}>
                   <TrendingUp size={13} aria-hidden="true" />
-                  <span>Progress recorded</span>
+                  <span>{workoutLogs.length > 0 ? 'Progress recorded' : 'Ready to start'}</span>
                 </span>
               </div>
             </div>
@@ -393,31 +439,19 @@ export default function Dashboard() {
             <Ring value={readinessScore} label="readiness" />
 
             <div className="readiness-copy">
-              <h3 className="readiness-title">Strong recovery</h3>
-              <p>
-                {streak > 2
-                  ? 'Consistent training momentum. Keep target RIR 2 on compound lifts.'
-                  : 'Neuromuscular readiness is high. Programmed load is optimal.'}
-              </p>
+              <h3 className="readiness-title">{readinessCategory}</h3>
+              <p>{readinessAdvice}</p>
             </div>
 
             {/* Muscle target volume indicator bars */}
             <div className="recovery-bars" aria-label="Muscle readiness bars">
-              <div>
-                <span>Chest</span>
-                <i><b style={{ width: '84%' }} /></i>
-                <strong>84%</strong>
-              </div>
-              <div>
-                <span>Back</span>
-                <i><b style={{ width: '78%' }} /></i>
-                <strong>78%</strong>
-              </div>
-              <div>
-                <span>Legs</span>
-                <i><b style={{ width: '91%' }} /></i>
-                <strong>91%</strong>
-              </div>
+              {keyMuscles.map((m) => (
+                <div key={m.name}>
+                  <span>{m.name}</span>
+                  <i><b style={{ width: `${m.value}%` }} /></i>
+                  <strong>{m.value}%</strong>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -440,35 +474,31 @@ export default function Dashboard() {
               </div>
               <span>Body weight</span>
               <strong>
-                {currentWeight} <small>kg</small>
+                {currentWeight != null ? `${currentWeight} ` : '— '}<small>kg</small>
               </strong>
-              <em className="neutral">
-                {weightChange === 0
-                  ? 'Balanced'
-                  : `${weightChange > 0 ? '+' : ''}${weightChange} kg this week`}
-              </em>
+              <em className="neutral">{changeLabel}</em>
             </div>
           </div>
 
-          {/* Mini Strength Trend Chart Card */}
+          {/* Training Volume Trend Card */}
           <Link to="/progress" className="card mini-chart-card">
             <div className="mini-chart-head">
               <div>
-                <span className="eyebrow">Performance score</span>
-                <strong>{820 + Math.min(120, loggedExercises * 12)}</strong>
+                <span className="eyebrow">Training volume</span>
+                <strong>{volumeDisplay}</strong>
               </div>
-              <span className="positive">
+              <span className={workoutLogs.length > 0 ? 'positive' : 'neutral'}>
                 <TrendingUp size={13} aria-hidden="true" />
-                <span>+4.8%</span>
+                <span>{workoutLogs.length > 0 ? `${workoutLogs.length} sets logged` : 'No logs yet'}</span>
               </span>
             </div>
 
-            <TrendChart />
+            <TrendChart ariaLabel="Training volume progression curve" />
 
             <div className="chart-labels" aria-hidden="true">
-              <span>Week 1</span>
-              <span>Week 2</span>
-              <span>Week 3</span>
+              <span>Cycle Start</span>
+              <span>Mid Cycle</span>
+              <span>Current</span>
             </div>
           </Link>
         </aside>
@@ -499,7 +529,7 @@ export default function Dashboard() {
             </div>
             <span>Weight</span>
             <strong>
-              {currentWeight} <small>kg</small>
+              {currentWeight != null ? `${currentWeight} ` : '— '}<small>kg</small>
             </strong>
           </div>
         </div>

@@ -153,6 +153,8 @@ export default function Plan() {
     );
   }
 
+  const trainingSessionsCount = calendarDays.filter((d) => !d.isRest).length;
+
   return (
     <div className="plan-page" id="plan-page">
       {/* ── Planner Toolbar ── */}
@@ -160,7 +162,7 @@ export default function Plan() {
         <div>
           <h2 className="planner-toolbar__title">Weekly Schedule</h2>
           <span className="planner-toolbar__sub">
-            {allDates.length} scheduled sessions · {planExercises.length} total exercises
+            {trainingSessionsCount} {trainingSessionsCount === 1 ? 'training session' : 'training sessions'} · {planExercises.length} total exercises
           </span>
         </div>
         <div className="planner-toolbar__actions">
