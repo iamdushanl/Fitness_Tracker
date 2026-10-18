@@ -36,6 +36,13 @@ async function requireAuth(req, res, next) {
     // Attach verified user to request object
     req.user = user;
     req.token = token;
+
+    // Extract tenant claims from JWT app_metadata (set by auth hook).
+    // NEVER trust client-supplied headers for tenant_id or role.
+    const meta = user.app_metadata || {};
+    req.tenantId = meta.tenant_id || null;   // null = Personal edition
+    req.userRole = meta.role || 'member';
+
     next();
   } catch (err) {
     console.error('Auth middleware error:', err);

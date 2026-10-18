@@ -27,7 +27,7 @@ describe('API Route Suite', () => {
     const res = await fetch(`${baseUrl}/`);
     assert.strictEqual(res.status, 200);
     const data = await res.json();
-    assert.strictEqual(data.name, 'Fitness Tracker API');
+    assert.strictEqual(data.name, 'FitTrack / GymOS API');
     assert.strictEqual(data.status, 'online');
     assert.ok(data.endpoints);
     assert.strictEqual(data.endpoints.health, '/health');
@@ -37,7 +37,7 @@ describe('API Route Suite', () => {
     const res = await fetch(`${baseUrl}/health`);
     assert.strictEqual(res.status, 200);
     const data = await res.json();
-    assert.deepStrictEqual(data, { status: 'ok' });
+    assert.deepStrictEqual(data, { status: 'ok', service: 'fitness-backend' });
   });
 
   it('GET /unknown-route returns 404 with structured JSON error', async () => {

@@ -1,0 +1,50 @@
+/* ─────────────────────────────────────────────
+   FitTrack 2.0 — Ring Dial Component
+   Conic gradient radial gauge
+   ───────────────────────────────────────────── */
+
+.ring {
+  --progress: 280deg;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(var(--accent) var(--progress), #292e29 var(--progress));
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 0 24px rgba(185, 243, 75, 0.12);
+}
+
+.ring::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.ring-inner {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  user-select: none;
+}
+
+.ring-inner strong {
+  display: block;
+  font-family: var(--serif);
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--text);
+}
+
+.ring-inner span {
+  display: block;
+  color: var(--muted);
+  font-size: 8.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}

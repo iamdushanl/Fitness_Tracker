@@ -1,0 +1,168 @@
+/* ─────────────────────────────────────────────
+   FitTrack 2.0 — Rest Overlay Stylesheet
+   Fullscreen blurred timer overlay
+   ───────────────────────────────────────────── */
+
+.rest-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(8, 10, 9, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 24px;
+}
+
+.rest-glow {
+  position: absolute;
+  width: 440px;
+  height: 440px;
+  border-radius: 50%;
+  background: rgba(185, 243, 75, 0.08);
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+.rest-overlay > *:not(.rest-glow) {
+  position: relative;
+  z-index: 1;
+}
+
+.rest-eyebrow {
+  display: block;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+.rest-title {
+  font-family: var(--serif);
+  font-size: 40px;
+  font-weight: 400;
+  color: var(--text);
+  margin: 0;
+}
+
+.rest-time {
+  font-family: var(--serif);
+  font-size: clamp(86px, 13vw, 154px);
+  line-height: 0.9;
+  letter-spacing: -4px;
+  color: var(--text);
+  margin: 18px 0 28px;
+}
+
+.rest-progress {
+  width: min(390px, 80vw);
+  height: 4px;
+  border-radius: 4px;
+  background: #292d29;
+  overflow: hidden;
+}
+
+.rest-progress span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+  transition: width 0.95s linear;
+}
+
+.rest-actions {
+  display: flex;
+  gap: 10px;
+  margin: 24px 0 36px;
+}
+
+.rest-action-btn {
+  min-height: 44px;
+  border-radius: 12px;
+  padding: 0 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.18s var(--ease-out-quart);
+}
+
+.rest-action-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--line-strong);
+}
+
+.rest-action-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.rest-skip-btn {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.rest-skip-btn:hover {
+  background: var(--accent-strong);
+}
+
+.next-exercise {
+  width: min(470px, calc(100vw - 40px));
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.next-exercise__tag {
+  text-transform: uppercase;
+  color: var(--accent);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.next-exercise__info strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.next-exercise__info small {
+  display: block;
+  color: var(--muted);
+  font-size: 10.5px;
+  margin-top: 2px;
+}
+
+.next-exercise__icon {
+  color: var(--muted);
+}
+
+@media (max-width: 600px) {
+  .rest-time {
+    font-size: 80px;
+  }
+  .rest-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}

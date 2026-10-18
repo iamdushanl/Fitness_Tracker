@@ -28,6 +28,9 @@ app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 const { requireAuth } = require('./middleware/auth');
+const { resolveTenant, requireRole, requireTenant } = require('./middleware/tenant');
+const { auditWrite } = require('./middleware/audit');
+const authRoutes = require('./routes/auth');
 
 /**
  * GET /
@@ -35,13 +38,15 @@ const { requireAuth } = require('./middleware/auth');
  */
 app.get('/', (req, res) => {
   res.json({
-    name: 'Fitness Tracker API',
+    name: 'FitTrack / GymOS API',
     status: 'online',
-    version: '1.0.0',
+    version: '2.0.0',
     environment: config.nodeEnv,
     endpoints: {
       health: '/health',
       weekly_summary: '/summary/week',
+      auth_switch_tenant: '/v1/auth/switch-tenant',
+      auth_tenants: '/v1/auth/tenants',
     },
   });
 });
@@ -118,6 +123,9 @@ app.get('/summary/week', requireAuth, async (req, res) => {
     });
   }
 });
+
+// ─── v1 Routes ─────────────────────────────────────────────────────
+app.use('/v1/auth', authRoutes);
 
 // 404 Not Found Catch-All Handler (JSON response)
 app.use((req, res) => {
