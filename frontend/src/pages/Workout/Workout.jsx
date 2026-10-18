@@ -299,13 +299,9 @@ export default function Workout() {
               <span>Return to Overview</span>
               <ArrowRight size={16} aria-hidden="true" />
             </Link>
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={() => setSessionFinished(false)}
-            >
+            <Link to="/progress" className="secondary-button">
               Review workout logs
-            </button>
+            </Link>
           </div>
         </div>
       </div>
