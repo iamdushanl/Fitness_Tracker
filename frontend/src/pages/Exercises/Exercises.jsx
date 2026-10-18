@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Search,
-  SlidersHorizontal,
   ChevronRight,
   X,
   Dumbbell,
@@ -190,17 +189,6 @@ export default function Exercises() {
               </button>
             )}
           </div>
-          <button
-            type="button"
-            className="filter-toggle-btn"
-            title="Active filters"
-            aria-label="Filter count"
-          >
-            <SlidersHorizontal size={17} aria-hidden="true" />
-            <span className="filter-badge">
-              {(selectedMuscle !== 'All' ? 1 : 0) + (selectedCategory !== 'All' ? 1 : 0) + (searchQuery ? 1 : 0)}
-            </span>
-          </button>
         </div>
 
         {/* Primary Muscle Scroller */}

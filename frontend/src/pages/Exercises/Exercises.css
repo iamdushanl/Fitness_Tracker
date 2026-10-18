@@ -15,9 +15,8 @@
 }
 
 .library-search {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 12px;
+  display: flex;
+  width: 100%;
   max-width: 680px;
 }
 
@@ -75,38 +74,6 @@
 
 .search-clear-btn:hover {
   color: var(--text);
-}
-
-.filter-toggle-btn {
-  min-height: 48px;
-  padding: 0 16px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--muted);
-  cursor: pointer;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
-}
-
-.filter-toggle-btn:hover {
-  border-color: var(--line-strong);
-  color: var(--text);
-}
-
-.filter-badge {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: 10px;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* ── Filter Scrollers ── */
@@ -382,14 +349,6 @@
 @media (max-width: 640px) {
   .exercise-grid {
     grid-template-columns: 1fr;
-  }
-
-  .library-search {
-    grid-template-columns: 1fr;
-  }
-
-  .filter-toggle-btn {
-    display: none;
   }
 
   .library-heading {
