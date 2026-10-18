@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { fetchUserProfile, fetchWeightHistory, calculateWeightStats } from '../../lib/userProfile';
 import { fetchActivePlan } from '../../lib/plans';
-import { fetchWorkoutLogs } from '../../lib/workoutLogs';
+import { fetchWorkoutLogs, calculateTotalTonnageKg, formatVolumeDisplay } from '../../lib/workoutLogs';
 import { calculateDailyStreak } from '../../lib/streak';
 import { calculateMuscleRecovery } from '../../lib/recovery';
 import { getExerciseById } from '../../lib/exercises';
@@ -124,17 +124,9 @@ export default function Dashboard() {
     });
   }, [muscleList]);
 
-  // Total volume load from workout logs
-  const totalTonnageKg = useMemo(() => {
-    return workoutLogs.reduce((acc, log) => {
-      const sets = log.actual_sets || 1;
-      const reps = log.actual_reps || 1;
-      const weight = log.actual_weight_kg || 0;
-      return acc + sets * reps * weight;
-    }, 0);
-  }, [workoutLogs]);
-
-  const volumeDisplay = totalTonnageKg > 0 ? `${(totalTonnageKg / 1000).toFixed(1)}t` : '0.0t';
+  // Total volume load from workout logs (sanitized, zero-rep preserved)
+  const totalTonnageKg = useMemo(() => calculateTotalTonnageKg(workoutLogs), [workoutLogs]);
+  const volumeDisplay = useMemo(() => formatVolumeDisplay(totalTonnageKg), [totalTonnageKg]);
 
   // Count logged exercises per date
   const completedPerDate = {};
@@ -431,7 +423,7 @@ export default function Dashboard() {
           <SectionHeading
             title="Daily readiness"
             action="Details"
-            to="/progress"
+            to="/recovery"
           />
 
           {/* Readiness Card */}
@@ -493,13 +485,10 @@ export default function Dashboard() {
               </span>
             </div>
 
-            <TrendChart ariaLabel="Training volume progression curve" />
-
-            <div className="chart-labels" aria-hidden="true">
-              <span>Cycle Start</span>
-              <span>Mid Cycle</span>
-              <span>Current</span>
-            </div>
+            <TrendChart
+              ariaLabel="Illustrative volume progression model (not measured historical points)"
+              caption="Illustrative model · Not measured data"
+            />
           </Link>
         </aside>
       </div>

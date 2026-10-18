@@ -60,3 +60,8 @@ export async function insertWorkoutLog(logData) {
   return { data, error };
 }
 
+export {
+  getLogVolumeKg,
+  calculateTotalTonnageKg,
+  formatVolumeDisplay,
+} from './volume';

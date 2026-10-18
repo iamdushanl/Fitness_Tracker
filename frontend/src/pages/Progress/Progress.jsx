@@ -12,7 +12,7 @@ import {
 import { fetchActivePlan } from '../../lib/plans';
 import { getExerciseById } from '../../lib/exercises';
 import { fetchUserProfile, fetchWeightHistory, insertWeight, calculateWeightStats } from '../../lib/userProfile';
-import { fetchWorkoutLogs } from '../../lib/workoutLogs';
+import { fetchWorkoutLogs, calculateTotalTonnageKg, formatVolumeDisplay } from '../../lib/workoutLogs';
 import { calculateDailyStreak } from '../../lib/streak';
 import { calculateMuscleRecovery } from '../../lib/recovery';
 import TrendChart from '../../components/TrendChart/TrendChart';
@@ -100,17 +100,9 @@ export default function Progress() {
 
   const streak = calculateDailyStreak(workoutLogs.map((wh) => wh.performed_at));
 
-  // Compute total volume / tonnage from workout logs
-  const totalTonnageKg = useMemo(() => {
-    return workoutLogs.reduce((acc, log) => {
-      const sets = log.actual_sets || 1;
-      const reps = log.actual_reps || 1;
-      const weight = log.actual_weight_kg || 0;
-      return acc + sets * reps * weight;
-    }, 0);
-  }, [workoutLogs]);
-
-  const volumeDisplay = totalTonnageKg > 0 ? `${(totalTonnageKg / 1000).toFixed(1)}t` : '0.0t';
+  // Compute total volume / tonnage from workout logs (sanitized, zero-rep preserved)
+  const totalTonnageKg = useMemo(() => calculateTotalTonnageKg(workoutLogs), [workoutLogs]);
+  const volumeDisplay = useMemo(() => formatVolumeDisplay(totalTonnageKg), [totalTonnageKg]);
 
   // Dynamic muscle recovery summary based on workout log timestamps
   const { muscleList } = useMemo(
@@ -203,23 +195,20 @@ export default function Progress() {
                   <span className="eyebrow">TRAINING PROGRESSION</span>
                   <h2 className="strength-heading">Progression & Consistency</h2>
                   <p className="strength-subtitle">
-                    Volume load progression across completed training sessions.
+                    Cumulative volume load across completed training sessions (model curve shown below).
                   </p>
                 </div>
                 <div className="score">
                   <span>Cumulative load</span>
-                  <strong>{totalTonnageKg > 0 ? `${(totalTonnageKg / 1000).toFixed(1)}t` : '0t'}</strong>
+                  <strong>{volumeDisplay}</strong>
                   <em>{workoutLogs.length} logged {workoutLogs.length === 1 ? 'set' : 'sets'}</em>
                 </div>
               </div>
 
-              <TrendChart ariaLabel="Strength progression curve increasing over time" />
-
-              <div className="chart-labels">
-                <span>Cycle Start</span>
-                <span>Mid Cycle</span>
-                <span>Current</span>
-              </div>
+              <TrendChart
+                ariaLabel="Illustrative strength progression curve (not measured points)"
+                caption="Illustrative progression curve · Not measured historical data"
+              />
             </div>
 
             {/* Right: Muscle Status & Recovery Mini-Map */}
