@@ -1,0 +1,285 @@
+/* ─────────────────────────────────────────────
+   FitTrack 2.0 — Sticky Topbar
+   Dynamic page header and athlete actions
+   ───────────────────────────────────────────── */
+
+.topbar {
+  min-height: 84px;
+  padding: 22px clamp(20px, 3.5vw, 48px) 18px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  background: rgba(11, 13, 12, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+/* ── Route Title & Eyebrow ── */
+.topbar__heading {
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar__eyebrow {
+  display: block;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+  font-size: 9px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  user-select: none;
+}
+
+.topbar__title {
+  font-family: var(--serif);
+  font-size: clamp(28px, 3.2vw, 40px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.6px;
+  color: var(--text);
+  margin: 0;
+}
+
+/* ── Topbar Actions (Notifications + Profile Avatar) ── */
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar__icon-button {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.18s var(--ease-out-quart);
+}
+
+.topbar__icon-button:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+  border-color: var(--line-strong);
+}
+
+.topbar__icon-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.topbar__notification-dot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  border: 1px solid var(--surface);
+}
+
+/* ── Avatar Button ── */
+.topbar__profile-wrapper {
+  position: relative;
+}
+
+.topbar__avatar-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #444c42, #1e221f);
+  border: 1px solid var(--line-strong);
+  color: var(--text);
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  transition: all 0.18s var(--ease-out-quart);
+}
+
+.topbar__avatar-btn:hover {
+  border-color: var(--accent);
+  transform: scale(1.04);
+}
+
+.topbar__avatar-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.topbar__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.topbar__avatar-initials {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+/* ── Dropdown Popover ── */
+.topbar__dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 260px;
+  background: rgba(20, 23, 21, 0.98);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(20px);
+  padding: 16px;
+  z-index: 60;
+  animation: dropdown-in 0.16s var(--ease-out-quart);
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.topbar__dropdown-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar__dropdown-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.topbar__dropdown-user {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar__dropdown-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar__dropdown-email {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.topbar__dropdown-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-top: 4px;
+}
+
+.topbar__dropdown-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.topbar__dropdown-item {
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.topbar__dropdown-item:hover {
+  background: var(--surface-hover);
+}
+
+.topbar__dropdown-item--signout {
+  color: var(--danger);
+}
+
+.topbar__dropdown-item--signout:hover {
+  background: rgba(217, 121, 102, 0.12);
+}
+
+.topbar__dropdown-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* ── Mobile Responsive Adjustments ── */
+@media (max-width: 768px) {
+  .topbar {
+    min-height: 72px;
+    padding: 18px 16px 14px;
+  }
+  .topbar__eyebrow {
+    font-size: 8.5px;
+  }
+  .topbar__title {
+    font-size: 26px;
+  }
+  .topbar__icon-button,
+  .topbar__avatar-btn {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .topbar__icon-button,
+  .topbar__avatar-btn,
+  .topbar__dropdown,
+  .topbar__dropdown-item {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -1,41 +1,96 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap');
 
-/* ── Design Tokens ── */
+/* ─────────────────────────────────────────────
+   FitTrack 2.0 — Design Tokens
+   Phase 0: token foundation
+   Branch: feat/fittrack-2-foundation
+   ───────────────────────────────────────────── */
 :root {
-  /* Typography */
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-heading: 'Outfit', 'Inter', sans-serif;
+  /* ── Typography ── */
+  --sans: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --serif: 'Instrument Serif', Georgia, serif;
 
-  /* Colors — Dark Mode */
-  --bg: hsl(225, 20%, 8%);
-  --surface: hsl(225, 18%, 12%);
-  --surface-elevated: hsla(225, 18%, 14%, 0.85);
-  --surface-hover: hsl(225, 18%, 16%);
-  --surface-sunken: hsl(225, 20%, 7%);
-  --border: hsl(225, 15%, 20%);
+  /* ── Colour — 2.0 olive-dark palette ── */
+  --bg:           #0b0d0c;
+  --bg-raised:    #101311;
+  --surface:      #141715;
+  --surface-hover:#1a1e1b;
+  --surface-soft: #181b19;
+  --line:         rgba(238, 242, 232, 0.09);
+  --line-strong:  rgba(238, 242, 232, 0.15);
+  --text:         #f1f1e9;
+  --muted:        #92988f;
+  --faint:        #5e645e;
 
-  --text-primary: hsl(220, 15%, 95%);
-  --text-secondary: hsl(220, 10%, 70%);
-  --text-tertiary: hsl(220, 8%, 50%);
+  /* Accent — lime */
+  --accent:       #b9f34b;
+  --accent-strong:#9edc2d;
+  --accent-ink:   #132000;
+  --accent-alpha: rgba(185, 243, 75, 0.12);
 
-  --primary: hsl(220, 90%, 60%);
-  --primary-alpha: hsla(220, 90%, 60%, 0.12);
-  --gradient-primary: linear-gradient(135deg, hsl(220, 90%, 55%), hsl(260, 80%, 60%));
+  /* Semantic colours */
+  --amber:        #d8a75b;
+  --cool:         #83aeb2;
+  --danger:       #d97966;
 
-  --success: hsl(150, 70%, 45%);
-  --success-alpha: hsla(150, 70%, 45%, 0.12);
-  --danger: hsl(0, 75%, 60%);
+  /* Light-mode aliases (kept for forward compat) */
+  --light-bg:      #f3f4ee;
+  --light-surface: #ffffff;
+  --light-text:    #171a18;
+  --light-muted:   #636a63;
 
-  /* Radii */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  /* ── Radius ── */
+  --radius-sm: 12px;   /* was 6px  — 2.0 uses softer curves */
+  --radius:    20px;
+  --radius-lg: 28px;   /* was 14px */
   --radius-full: 999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px hsla(0, 0%, 0%, 0.3);
-  --shadow-md: 0 4px 12px hsla(0, 0%, 0%, 0.4);
-  --shadow-lg: 0 8px 24px hsla(0, 0%, 0%, 0.5);
+  /* ── Shadows ── */
+  --shadow:    0 24px 70px rgba(0, 0, 0, 0.28);
+  --shadow-sm: 0 1px 4px  rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.42);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.52);
+
+  /* ── Motion ── */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --transition-fast: 150ms var(--ease-out-quart);
+
+  /* ══════════════════════════════════════════════
+     LEGACY ALIASES
+     Keep all 25 tokens that existing component
+     .css files reference.  Remove each alias only
+     after the consuming component has been
+     migrated to the 2.0 canonical name.
+     ══════════════════════════════════════════════ */
+
+  /* typography — old names */
+  --font-body:    var(--sans);
+  --font-heading: var(--serif);
+  --font-xs:      0.72rem;          /* YouTubeEmbed.css only */
+
+  /* component tokens */
+  --progress:     0deg;             /* Ring.css dial progress */
+
+  /* colour — old names */
+  --border:          var(--line);
+  --primary:         var(--accent);
+  --primary-alpha:   var(--accent-alpha);
+  --success:         var(--accent);
+  --success-alpha:   var(--accent-alpha);
+  --gradient-primary: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+
+  /* surface — old names */
+  --surface-elevated: color-mix(in srgb, var(--surface) 85%, transparent);
+  --surface-sunken:   var(--bg);
+
+  /* text — old names */
+  --text-primary:   var(--text);
+  --text-secondary: var(--muted);
+  --text-tertiary:  var(--faint);
+  --text-muted:     var(--faint);   /* YouTubeEmbed.css only */
+
+  /* radius — old names */
+  --radius-md: var(--radius);       /* was 10px; now 20px via 2.0 */
 }
 
 /* ── Reset & Base ── */
@@ -82,18 +137,56 @@ select {
   font-family: var(--font-body);
 }
 
-/* ── Utilities ── */
-.page-container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2rem;
+/* ── Layout & Application Shell ── */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  background: var(--bg);
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.main-panel {
+  min-height: 100vh;
+  margin-left: 248px;
+  flex: 1;
+  width: calc(100% - 248px);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-area {
   flex: 1;
   width: 100%;
 }
 
-@media (max-width: 640px) {
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem clamp(1rem, 2.5vw, 2.5rem);
+  flex: 1;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 210px;
+  }
+  .main-panel {
+    margin-left: 210px;
+    width: calc(100% - 210px);
+  }
+}
+
+@media (max-width: 768px) {
+  .main-panel {
+    margin-left: 0;
+    width: 100%;
+    padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+  }
   .page-container {
-    padding: 1rem;
+    padding: 1.25rem 1rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
   }
 }
 

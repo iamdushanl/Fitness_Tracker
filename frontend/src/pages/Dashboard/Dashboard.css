@@ -1,93 +1,638 @@
-.dashboard {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+/* ─────────────────────────────────────────────
+   FitTrack 2.0 — Dashboard (HomeView) Stylesheet
+   Modern olive-dark theme with high-performance grid
+   ───────────────────────────────────────────── */
+
+.dashboard-view {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
 }
 
-.dashboard__header {
+/* ── Status Strip ── */
+.status-strip {
+  min-height: 62px;
+  border: 1px solid rgba(185, 243, 75, 0.16);
+  background: linear-gradient(90deg, rgba(185, 243, 75, 0.08) 0%, rgba(185, 243, 75, 0.015) 100%);
+  border-radius: 16px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 1rem;
+  padding: 14px 22px;
+  margin-bottom: 26px;
 }
 
-.dashboard__greeting {
-  font-family: var(--font-heading);
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.dashboard__subtext {
-  color: var(--text-tertiary);
-  font-size: 0.9rem;
-  margin: 0.25rem 0 0 0;
-}
-
-.dashboard__cta {
-  padding: 0.6rem 1.25rem;
-  background: var(--gradient-primary);
-  color: white;
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 0.85rem;
-  transition: opacity 0.2s, transform 0.2s;
-  white-space: nowrap;
-}
-
-.dashboard__cta:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.dashboard__stats {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 1rem;
-}
-
-@media (max-width: 768px) {
-  .dashboard__stats {
-    grid-template-columns: 1fr;
-  }
-}
-
-.dashboard__workouts {
+.status-main {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  align-items: center;
+  gap: 14px;
 }
 
-.dashboard__section-header {
+.status-main strong {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.status-main span {
+  display: block;
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.status-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background: rgba(185, 243, 75, 0.12);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.status-stats {
+  display: flex;
+  gap: 28px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.status-stats div {
+  text-align: right;
+}
+
+.status-stats strong {
+  display: block;
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+/* ── Section Headings & Text Buttons ── */
+.section-heading {
+  height: 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 14px;
 }
 
-.dashboard__section-title {
-  font-family: var(--font-heading);
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text-primary);
+.section-heading__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
   margin: 0;
 }
 
-.dashboard__view-all {
-  font-size: 0.85rem;
+.text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-size: 11px;
   font-weight: 600;
-  color: var(--primary);
   text-decoration: none;
+  cursor: pointer;
+  transition: gap 0.15s ease;
 }
 
-.dashboard__view-all:hover {
-  opacity: 0.8;
+.text-button:hover {
+  gap: 6px;
 }
 
-.dashboard__cards {
+/* ── Card Base ── */
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+/* ── Home Grid (Desktop 2-column) ── */
+.home-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1.6fr) minmax(320px, 0.8fr);
+  gap: 28px;
+}
+
+/* ── Left Column: Workout Hero Card ── */
+.workout-hero {
+  height: 436px;
+  position: relative;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+
+.workout-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(8, 10, 9, 0.96) 0%, rgba(8, 10, 9, 0.74) 43%, rgba(8, 10, 9, 0.15) 76%),
+    linear-gradient(0deg, rgba(8, 10, 9, 0.55), transparent 60%);
+  pointer-events: none;
+}
+
+.workout-hero-content {
+  position: absolute;
+  inset: 0;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  z-index: 2;
+}
+
+.hero-topline {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 8px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 6px 10px;
+  letter-spacing: 0.5px;
+}
+
+.accent-badge {
+  color: var(--accent);
+  background: rgba(185, 243, 75, 0.1);
+  border-color: rgba(185, 243, 75, 0.2);
+}
+
+.workout-time {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.hero-copy {
+  margin-top: auto;
+}
+
+.kicker {
+  color: var(--accent);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.hero-heading {
+  font-family: var(--serif);
+  font-size: clamp(38px, 4.4vw, 56px);
+  line-height: 0.95;
+  color: var(--text);
+  margin: 6px 0 10px;
+  font-weight: 400;
+  letter-spacing: -0.5px;
+}
+
+.hero-copy p {
+  color: #c6c9c2;
+  font-size: 13px;
+  max-width: 480px;
+  line-height: 1.45;
+}
+
+.workout-summary {
+  display: flex;
+  margin: 22px 0 20px;
+}
+
+.workout-summary > div {
+  min-width: 90px;
+  padding-right: 20px;
+  margin-right: 20px;
+  border-right: 1px solid var(--line-strong);
+}
+
+.workout-summary > div:last-child {
+  border: 0;
+}
+
+.workout-summary strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.workout-summary span {
+  display: block;
+  color: var(--muted);
+  font-size: 9.5px;
+  margin-top: 3px;
+}
+
+.primary-button.hero-cta {
+  min-height: 48px;
+  padding: 0 24px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-ink);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  box-shadow: 0 0 28px rgba(185, 243, 75, 0.16);
+  transition: all 0.18s var(--ease-out-quart);
+}
+
+.primary-button.hero-cta:hover {
+  background: var(--accent-strong);
+  transform: translateY(-1px);
+}
+
+/* ── Lower Desktop Grid (Week Card + PR Card) ── */
+.desktop-lower-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.65fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.week-card,
+.pr-card {
+  padding: 20px;
+}
+
+.week-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.day {
+  display: grid;
+  gap: 6px;
+  text-align: center;
+  color: var(--faint);
+  font-size: 10px;
+}
+
+.day div {
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  color: var(--muted);
+}
+
+.day.done div {
+  background: rgba(185, 243, 75, 0.12);
+  color: var(--accent);
+}
+
+.day.today div {
+  color: var(--accent-ink);
+  background: var(--accent);
+  font-weight: 700;
+}
+
+.day.planned div {
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+
+.weekly-goal {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 18px;
+}
+
+.weekly-goal strong {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text);
+}
+
+.weekly-goal span {
+  display: block;
+  font-size: 9.5px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.weekly-goal > span {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.progress-track {
+  height: 4px;
+  border-radius: 4px;
+  background: #292d29;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-track span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+}
+
+/* ── PR Card ── */
+.pr-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.pr-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: rgba(216, 167, 91, 0.12);
+  color: var(--amber);
+  flex-shrink: 0;
+}
+
+.pr-content {
+  min-width: 0;
+}
+
+.pr-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 3px 0 4px;
+}
+
+.pr-value {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 400;
+  color: var(--text);
+  display: block;
+}
+
+.positive {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent);
+  font-size: 10px;
+  margin-top: 4px;
+}
+
+/* ── Right Column: Readiness Card ── */
+.readiness-card {
+  padding: 22px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
+  align-items: center;
+}
+
+.readiness-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.readiness-copy p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.recovery-bars {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.recovery-bars > div {
+  display: grid;
+  grid-template-columns: 54px 1fr 30px;
+  gap: 8px;
+  align-items: center;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.recovery-bars i {
+  height: 4px;
+  background: #292d29;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.recovery-bars b {
+  height: 100%;
+  display: block;
+  background: var(--accent);
+  border-radius: inherit;
+}
+
+.recovery-bars strong {
+  color: var(--text);
+  text-align: right;
+  font-size: 10px;
+}
+
+/* ── Metric Grid (Streak + Weight) ── */
+.metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.metric-card {
+  padding: 18px;
+}
+
+.metric-icon {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--amber);
+  background: rgba(216, 167, 91, 0.12);
+  margin-bottom: 14px;
+}
+
+.metric-icon--cool {
+  color: var(--cool);
+  background: rgba(131, 174, 178, 0.12);
+}
+
+.metric-card > span {
+  color: var(--muted);
+  font-size: 10px;
+  display: block;
+}
+
+.metric-card > strong {
+  display: block;
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--text);
+  margin: 4px 0;
+}
+
+.metric-card small {
+  font-family: var(--sans);
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.metric-card em {
+  color: var(--accent);
+  font-size: 9px;
+  font-style: normal;
+}
+
+.metric-card em.neutral {
+  color: var(--muted);
+}
+
+/* ── Mini Strength Chart Card ── */
+.mini-chart-card {
+  padding: 18px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: border-color 0.18s ease;
+}
+
+.mini-chart-card:hover {
+  border-color: var(--line-strong);
+}
+
+.mini-chart-head {
+  display: flex;
+  justify-content: space-between;
+}
+
+.mini-chart-head strong {
+  display: block;
+  font-family: var(--serif);
+  font-size: 27px;
+  font-weight: 400;
+  color: var(--text);
+}
+
+.chart-labels {
+  display: flex;
+  justify-content: space-between;
+  color: var(--faint);
+  font-size: 9px;
+  margin-top: 4px;
+}
+
+/* ── Mobile-Only Section (hidden on desktop) ── */
+.mobile-only {
+  display: none;
+}
+
+/* ── Tablet Breakpoint (<= 1024px) ── */
+@media (max-width: 1024px) {
+  .home-grid {
+    grid-template-columns: 1fr;
+  }
+  .home-secondary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .home-secondary > .section-heading {
+    grid-column: 1 / -1;
+  }
+  .home-secondary .metric-grid {
+    margin: 0;
+  }
+  .mini-chart-card {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── Mobile Breakpoint (<= 768px) ── */
+@media (max-width: 768px) {
+  .status-strip {
+    padding: 12px 14px;
+    margin-bottom: 20px;
+  }
+  .status-stats {
+    display: none;
+  }
+  .home-grid {
+    display: block;
+  }
+  .home-secondary,
+  .desktop-lower-grid {
+    display: none;
+  }
+  .workout-hero {
+    height: 440px;
+  }
+  .workout-hero-content {
+    padding: 20px;
+  }
+  .hero-heading {
+    font-size: 38px;
+  }
+  .workout-summary {
+    width: 100%;
+    margin: 16px 0 18px;
+  }
+  .workout-summary > div {
+    min-width: 0;
+    flex: 1;
+    padding-right: 10px;
+    margin-right: 10px;
+  }
+  .primary-button.hero-cta {
+    width: 100%;
+    justify-content: center;
+  }
+  .mobile-only {
+    display: block;
+  }
+  .mobile-insights {
+    margin-top: 26px;
+  }
+  .mobile-week-card {
+    margin-top: 14px;
+    padding: 16px;
+  }
 }

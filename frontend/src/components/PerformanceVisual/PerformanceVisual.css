@@ -1,0 +1,125 @@
+/* ─────────────────────────────────────────────
+   FitTrack 2.0 — Abstract Performance Visual
+   SVG Animations and Organic Motion
+   ───────────────────────────────────────────── */
+
+.performance-visual {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 72% 40%, #171c16, #0c0f0d 62%, #090b0a);
+}
+
+.visual-orbit {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1;
+  opacity: 0.07;
+  transform-origin: center;
+}
+
+.orbit-one {
+  animation: orbit-shift 14s ease-in-out infinite;
+}
+
+.orbit-two {
+  animation: orbit-shift 18s ease-in-out infinite reverse;
+}
+
+.energy-ribbon {
+  transform-origin: 520px 330px;
+  animation: energy-drift 10s ease-in-out infinite;
+}
+
+.energy-line {
+  stroke-dasharray: 240 90;
+  animation: energy-flow 8s linear infinite;
+}
+
+.athlete-form {
+  transform-origin: 530px 340px;
+  animation: athlete-breathe 7s ease-in-out infinite;
+}
+
+.energy-particles circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: particle-float 6s ease-in-out infinite;
+}
+
+.energy-particles circle:nth-child(2) {
+  animation-delay: -1.3s;
+}
+
+.energy-particles circle:nth-child(3) {
+  animation-delay: -2.7s;
+}
+
+.energy-particles circle:nth-child(4) {
+  animation-delay: -4.1s;
+}
+
+.energy-particles circle:nth-child(5) {
+  animation-delay: -5.2s;
+}
+
+/* ── Keyframes ── */
+@keyframes athlete-breathe {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.008);
+  }
+}
+
+@keyframes energy-drift {
+  0%, 100% {
+    transform: rotate(-1deg) translateY(0);
+  }
+  50% {
+    transform: rotate(2deg) translateY(-4px);
+  }
+}
+
+@keyframes energy-flow {
+  to {
+    stroke-dashoffset: -660;
+  }
+}
+
+@keyframes orbit-shift {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.05;
+  }
+  50% {
+    transform: rotate(5deg) scale(1.025);
+    opacity: 0.11;
+  }
+}
+
+@keyframes particle-float {
+  0%, 100% {
+    transform: translate(0, 0) scale(0.8);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translate(5px, -13px) scale(1.25);
+    opacity: 0.75;
+  }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .orbit-one,
+  .orbit-two,
+  .energy-ribbon,
+  .energy-line,
+  .athlete-form,
+  .energy-particles circle {
+    animation: none !important;
+    transition: none !important;
+  }
+}

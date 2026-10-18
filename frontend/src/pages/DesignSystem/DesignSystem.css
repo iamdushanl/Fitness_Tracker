@@ -1,0 +1,387 @@
+/* ==========================================================================
+   FitTrack 2.0 — Design System Foundations (/design-system) Styles
+   ========================================================================== */
+
+.design-system-page {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-bottom: 64px;
+}
+
+/* ── Intro ── */
+.foundation-intro {
+  max-width: 750px;
+  margin: 24px 0 56px;
+}
+
+.foundation-heading {
+  font-family: var(--serif);
+  font-size: clamp(38px, 4.5vw, 60px);
+  line-height: 1.02;
+  font-weight: 400;
+  color: var(--text);
+  margin: 6px 0 0;
+}
+
+.foundation-subtext {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin-top: 14px;
+  max-width: 620px;
+}
+
+/* ── Section Structure ── */
+.foundation-section {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 40px;
+  padding: 36px 0;
+  border-top: 1px solid var(--line);
+}
+
+.foundation-label > span {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.foundation-label h2 {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--text);
+  margin: 6px 0 4px;
+}
+
+.foundation-label p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* ── Swatch Grid ── */
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.swatch {
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.swatch-color {
+  display: block;
+  aspect-ratio: 1.8;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  margin-bottom: 10px;
+}
+
+.swatch strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.swatch small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 3px;
+  font-family: monospace;
+}
+
+/* ── Type Specimens ── */
+.type-specimens {
+  padding: 10px 24px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.type-specimen-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 120px;
+  align-items: baseline;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.type-specimen-row:last-child {
+  border-bottom: 0;
+}
+
+.type-specimen-label {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.specimen-sample {
+  color: var(--text);
+}
+
+.type-display-lg {
+  font-family: var(--serif);
+  font-size: 52px;
+  line-height: 0.95;
+}
+
+.type-display-md {
+  font-family: var(--serif);
+  font-size: 40px;
+  line-height: 1;
+}
+
+.type-h1 {
+  font-family: var(--serif);
+  font-size: 32px;
+}
+
+.type-h2 {
+  font-family: var(--serif);
+  font-size: 24px;
+}
+
+.type-h3 {
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.type-body-lg {
+  font-family: var(--sans);
+  font-size: 16px;
+}
+
+.type-body {
+  font-family: var(--sans);
+  font-size: 14px;
+}
+
+.type-body-sm {
+  font-family: var(--sans);
+  font-size: 12px;
+}
+
+.type-caption {
+  font-family: var(--sans);
+  font-size: 10px;
+  color: var(--faint);
+}
+
+.type-metric-lg {
+  font-family: var(--serif);
+  font-size: 36px;
+}
+
+.type-metric-md {
+  font-family: var(--serif);
+  font-size: 28px;
+}
+
+.type-specimen-font {
+  color: var(--faint);
+  font-size: 10px;
+  text-align: right;
+}
+
+/* ── Spacing & Shape ── */
+.spacing-shape-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.spacing-tokens,
+.radius-tokens {
+  padding: 20px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.specimen-group-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 14px;
+}
+
+.spacing-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.spacing-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.spacing-bar-item i {
+  display: block;
+  width: 14px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.radius-pills {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.radius-pill-item {
+  min-width: 70px;
+  height: 50px;
+  background: var(--surface-hover);
+  border: 1px solid var(--line-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ── Component Board ── */
+.component-board {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.component-group {
+  padding: 20px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.component-name {
+  display: block;
+  color: var(--faint);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 14px;
+}
+
+.component-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.specimen-input-wrap {
+  margin-bottom: 10px;
+}
+
+.specimen-input {
+  width: 100%;
+  min-height: 42px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  padding: 0 14px;
+  font-size: 12px;
+  outline: none;
+}
+
+.specimen-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #303730;
+  border: 1px solid var(--line-strong);
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.specimen-set-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+
+.specimen-set-num {
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--faint);
+}
+
+.specimen-stepper {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.specimen-rir {
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--surface-hover);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.specimen-check {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: grid;
+  place-items: center;
+}
+
+/* ── Responsive Adaptations ── */
+@media (max-width: 900px) {
+  .foundation-section {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .swatch-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .component-board {
+    grid-template-columns: 1fr;
+  }
+
+  .type-specimen-row {
+    grid-template-columns: 100px 1fr;
+  }
+
+  .type-specimen-font {
+    display: none;
+  }
+}

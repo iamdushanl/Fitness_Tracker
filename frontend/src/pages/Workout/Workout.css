@@ -1,85 +1,502 @@
-.workout-page {
+/* ─────────────────────────────────────────────
+   FitTrack 2.0 — Workout Session Stylesheet
+   Active workout session layout & set stepper UI
+   ───────────────────────────────────────────── */
+
+.workout-view {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+}
+
+/* ── Day Selector Strip ── */
+.workout-day-bar {
   display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 24px;
 }
 
-.workout-page__header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.workout-page__title {
-  font-family: var(--font-heading);
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.workout-page__subtitle {
-  color: var(--text-tertiary);
-  font-size: 0.9rem;
-  margin: 0;
-}
-
-.workout-page__rest {
-  text-align: center;
-  padding: 3rem 2rem;
+.workout-day-btn {
+  min-width: 90px;
+  padding: 10px 14px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  color: var(--muted);
+  font: inherit;
+  transition: all 0.18s var(--ease-out-quart);
 }
 
-.workout-page__rest-icon {
-  font-size: 3rem;
-  display: block;
-  margin-bottom: 0.75rem;
+.workout-day-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--line-strong);
+  color: var(--text);
 }
 
-.workout-page__rest-title {
-  font-family: var(--font-heading);
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 0.4rem 0;
+.workout-day-btn--active {
+  background: var(--surface-hover) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  box-shadow: 0 0 16px rgba(185, 243, 75, 0.12);
 }
 
-.workout-page__rest-text {
-  color: var(--text-tertiary);
-  font-size: 0.9rem;
+.workout-day-btn__name {
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.workout-day-btn__num {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--text);
+}
+
+.workout-day-btn--active .workout-day-btn__num {
+  color: var(--accent);
+}
+
+.workout-day-btn__count {
+  font-size: 9px;
+  color: var(--faint);
+}
+
+/* ── Active Session Header ── */
+.workout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.workout-nav-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.workout-nav-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.workout-header-center {
+  text-align: center;
+}
+
+.workout-session-title {
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--text);
   margin: 0;
-  max-width: 380px;
-  margin-inline: auto;
 }
 
-.workout-page__exercises {
+.workout-session-sub {
+  color: var(--muted);
+  font-size: 11px;
+  display: block;
+  margin-top: 3px;
+}
+
+.workout-finish-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: 1px solid var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.workout-finish-btn:hover {
+  background: var(--accent-strong);
+}
+
+/* ── Session Progress Bar ── */
+.session-progress {
+  height: 4px;
+  background: #262b26;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 14px 0 24px;
+}
+
+.session-progress span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+  transition: width 0.3s ease;
+}
+
+/* ── Exercise Layout (2-Column) ── */
+.exercise-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+  gap: 32px;
+  align-items: start;
+}
+
+/* Left Media Panel */
+.exercise-media {
+  height: 480px;
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: #131714;
+  border: 1px solid var(--line);
+}
+
+.exercise-media-visual {
+  width: 100%;
+  height: 100%;
+}
+
+.media-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(8, 10, 9, 0.94) 0%, rgba(8, 10, 9, 0.35) 50%, transparent 100%);
+  pointer-events: none;
+}
+
+.exercise-count {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(14, 17, 15, 0.78);
+  backdrop-filter: blur(14px);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text);
+  border: 1px solid var(--line);
+  user-select: none;
+}
+
+.media-info-overlay {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  gap: 8px;
+}
+
+/* Right Detail & Steppers Panel */
+.exercise-detail {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 14px;
 }
 
-.workout-page__exercise-group {
+.exercise-title {
+  font-family: var(--serif);
+  font-size: clamp(34px, 4vw, 46px);
+  line-height: 0.98;
+  font-weight: 400;
+  color: var(--text);
+  margin: 4px 0 0;
+}
+
+.exercise-badges {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.workout-page__log-btn {
-  padding: 0.5rem 1rem;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-md);
+.progression-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(185, 243, 75, 0.08);
+  border: 1px solid rgba(185, 243, 75, 0.16);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.progression-note svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.progression-note strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ── Set Stepper Card ── */
+.set-card {
+  padding: 18px 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.set-head {
+  display: grid;
+  grid-template-columns: 36px 1fr 1fr 48px 44px;
+  gap: 10px;
+  color: var(--faint);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 0 4px 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.set-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 1fr 48px 44px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 4px;
+  border-bottom: 1px solid rgba(238, 242, 232, 0.04);
+}
+
+.set-row:last-of-type {
+  border-bottom: 0;
+}
+
+.set-number {
+  font-family: var(--serif);
+  font-size: 20px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  height: 38px;
+  padding: 0 4px;
+  transition: border-color 0.18s ease;
+}
+
+.stepper:focus-within {
+  border-color: rgba(185, 243, 75, 0.4);
+}
+
+.stepper button {
+  width: 28px;
+  height: 28px;
+  border: 0;
   background: transparent;
-  color: var(--primary);
-  font-size: 0.85rem;
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.stepper button:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.stepper-input {
+  width: 44px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.stepper-input::-webkit-outer-spin-button,
+.stepper-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.rir-control {
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  font-size: 12px;
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  user-select: none;
+}
+
+.set-check {
+  width: 40px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.18s var(--ease-out-quart);
+}
+
+.set-check:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.set-row.completed .set-check {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+.set-row.completed .stepper {
+  opacity: 0.65;
+}
+
+.add-set {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 10px;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.add-set:hover {
+  text-decoration: underline;
+}
+
+/* Movement Actions */
+.session-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.secondary-button {
+  min-height: 46px;
+  padding: 0 18px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.18s var(--ease-out-quart);
 }
 
-.workout-page__log-btn:hover {
-  border-color: var(--primary);
-  background: var(--primary-alpha);
+.secondary-button:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+
+.secondary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Rest Day & Finished Cards ── */
+.workout-rest-card,
+.session-finished-card,
+.workout-empty-card {
+  padding: 56px 32px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  text-align: center;
+  max-width: 580px;
+  margin: 36px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.workout-rest-icon,
+.session-finished-icon,
+.workout-empty-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: rgba(185, 243, 75, 0.1);
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+
+.workout-rest-title,
+.session-finished-title,
+.workout-empty-title {
+  font-family: var(--serif);
+  font-size: 32px;
+  color: var(--text);
+  margin: 6px 0 10px;
+}
+
+.workout-rest-desc,
+.session-finished-desc,
+.workout-empty-desc {
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+  margin: 0 0 26px;
+}
+
+.session-finished-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* ── Responsive Mobile ── */
+@media (max-width: 768px) {
+  .exercise-layout {
+    grid-template-columns: 1fr;
+  }
+  .exercise-media {
+    height: 320px;
+  }
+  .workout-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
 }

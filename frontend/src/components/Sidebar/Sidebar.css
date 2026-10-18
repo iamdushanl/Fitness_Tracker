@@ -1,0 +1,307 @@
+/* ─────────────────────────────────────────────
+   FitTrack 2.0 — Sidebar Navigation
+   Desktop fixed sidebar (~248px)
+   ───────────────────────────────────────────── */
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 248px;
+  height: 100vh;
+  padding: 28px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: rgba(11, 13, 12, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid var(--line);
+  z-index: 40;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ── Brand Logo ── */
+.sidebar__logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 8px 12px;
+  user-select: none;
+}
+
+.sidebar__logo-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--accent-ink);
+  transform: rotate(-4deg);
+  box-shadow: 0 4px 14px rgba(185, 243, 75, 0.22);
+  flex-shrink: 0;
+  transition: transform 0.2s var(--ease-out-quart);
+}
+
+.sidebar__logo:hover .sidebar__logo-mark {
+  transform: rotate(0deg) scale(1.05);
+}
+
+.sidebar__logo-text {
+  font-family: var(--sans);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--text);
+}
+
+.sidebar__logo-badge {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-left: -6px;
+  margin-top: -14px;
+  letter-spacing: -0.2px;
+}
+
+/* ── Navigation Links ── */
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 32px;
+}
+
+.sidebar__nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid transparent;
+  transition: all 0.18s var(--ease-out-quart);
+}
+
+.sidebar__nav-icon {
+  flex-shrink: 0;
+  color: inherit;
+  transition: transform 0.18s var(--ease-out-quart);
+}
+
+.sidebar__nav-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__active-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: all 0.2s var(--ease-out-quart);
+}
+
+/* Hover & Active States */
+.sidebar__nav-item:hover {
+  color: var(--text);
+  background: var(--surface);
+  border-color: rgba(238, 242, 232, 0.05);
+}
+
+.sidebar__nav-item:hover .sidebar__nav-icon {
+  transform: scale(1.08);
+}
+
+.sidebar__nav-item--active {
+  color: var(--accent);
+  background: rgba(185, 243, 75, 0.08);
+  border-color: rgba(185, 243, 75, 0.18);
+  font-weight: 600;
+}
+
+.sidebar__nav-item--active .sidebar__active-dot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.sidebar__nav-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── Bottom Section (Coach Card + User Profile) ── */
+.sidebar__bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+/* ── Coach Insight Card ── */
+.sidebar__coach-card {
+  padding: 16px;
+  border-radius: 16px;
+  background: linear-gradient(150deg, rgba(185, 243, 75, 0.09) 0%, rgba(20, 23, 21, 0.95) 75%);
+  border: 1px solid rgba(185, 243, 75, 0.16);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+}
+
+.sidebar__coach-icon {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--accent);
+  background: rgba(185, 243, 75, 0.12);
+  margin-bottom: 10px;
+}
+
+.sidebar__coach-title {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.sidebar__coach-text {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.sidebar__coach-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  transition: gap 0.15s ease;
+}
+
+.sidebar__coach-link:hover {
+  gap: 8px;
+}
+
+.sidebar__coach-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── User Profile Footer ── */
+.sidebar__profile {
+  display: grid;
+  grid-template-columns: 36px 1fr 32px;
+  gap: 10px;
+  align-items: center;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.sidebar__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #444c42, #1e221f);
+  border: 1px solid var(--line-strong);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text);
+  overflow: hidden;
+  user-select: none;
+}
+
+.sidebar__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sidebar__user-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar__user-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__user-meta {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.sidebar__signout-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--faint);
+  cursor: pointer;
+  transition: all 0.15s var(--ease-out-quart);
+}
+
+.sidebar__signout-btn:hover {
+  color: var(--danger);
+  background: rgba(217, 121, 102, 0.12);
+  border-color: rgba(217, 121, 102, 0.25);
+}
+
+.sidebar__signout-btn:focus-visible {
+  outline: 2px solid var(--danger);
+  outline-offset: 2px;
+}
+
+/* ── Mobile Breakpoint ── */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar__logo-mark,
+  .sidebar__nav-item,
+  .sidebar__nav-icon,
+  .sidebar__active-dot,
+  .sidebar__coach-link,
+  .sidebar__signout-btn {
+    transition: none !important;
+    animation: none !important;
+  }
+}

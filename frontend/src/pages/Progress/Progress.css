@@ -1,93 +1,593 @@
+/* ==========================================================================
+   FitTrack 2.0 — Progress & Analytics (/progress) Styles
+   ========================================================================== */
+
 .progress-page {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-bottom: 64px;
 }
 
-.progress-page__header {
+/* ── Tabs ── */
+.progress-tabs {
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
 }
 
-.progress-page__title {
-  font-family: var(--font-heading);
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: var(--text-primary);
+.progress-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.progress-tab-btn {
+  flex: 0 0 auto;
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0 16px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.progress-tab-btn:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.progress-tab-btn.active {
+  background: var(--surface-hover);
+  color: var(--accent);
+  border-color: rgba(185, 243, 75, 0.3);
+}
+
+/* ── 2.0 Progress Grid Layout ── */
+.progress-layout {
+  display: grid;
+  grid-template-columns: 1.45fr 0.85fr;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+/* ── Strength Trajectory Card ── */
+.strength-card {
+  padding: 26px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.chart-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.strength-heading,
+.recovery-heading {
+  font-family: var(--serif);
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 400;
+  color: var(--text);
+  margin: 4px 0 0;
+}
+
+.strength-subtitle {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 6px;
+  max-width: 440px;
+}
+
+.score {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.score span {
+  display: block;
+  color: var(--faint);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.score strong {
+  display: block;
+  font-family: var(--serif);
+  font-size: 36px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--text);
+  margin: 2px 0 1px;
+}
+
+.score em {
+  display: block;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.strength-card .trend-chart {
+  height: 240px;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.chart-labels {
+  display: flex;
+  justify-content: space-between;
+  color: var(--faint);
+  font-size: 10px;
+  margin-top: 8px;
+  padding: 0 4px;
+}
+
+/* ── Muscle Recovery Mini-Map ── */
+.recovery-map {
+  padding: 24px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+}
+
+.recovery-link-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 20px;
+  transition: transform var(--transition-fast);
+}
+
+.recovery-link-badge:hover {
+  transform: translateY(-1px);
+}
+
+.body-map {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 20px;
+  align-items: center;
+  min-height: 250px;
+  margin-top: 16px;
+}
+
+.body-figure {
+  height: 190px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--muted);
+}
+
+.body-head {
+  width: 32px;
+  height: 32px;
+  color: var(--line-strong);
+}
+
+.body-torso {
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.body-torso span {
+  width: 32px;
+  height: 80px;
+  border-radius: 18px 18px 8px 8px;
+  background: linear-gradient(var(--accent), #42502f);
+}
+
+.body-legs {
+  display: flex;
+  gap: 8px;
+  margin-top: 3px;
+}
+
+.body-legs span {
+  width: 20px;
+  height: 64px;
+  border-radius: 8px 8px 12px 12px;
+  background: linear-gradient(var(--amber), #3b3429);
+}
+
+.muscle-list {
+  display: grid;
+  gap: 12px;
+}
+
+.muscle-list > div {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 8px;
+  align-items: center;
+  font-size: 10px;
+  color: var(--text);
+}
+
+.muscle-list strong {
+  grid-column: 2;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 400;
+  margin-top: 1px;
+}
+
+.muscle-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  grid-row: span 2;
+}
+
+.muscle-dot.ready {
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(185, 243, 75, 0.5);
+}
+
+.muscle-dot.warm {
+  background: var(--amber);
+}
+
+.muscle-dot.tired {
+  background: var(--danger);
+}
+
+.muscle-dot.muted {
+  background: var(--faint);
+}
+
+/* ── Progress Metrics Grid ── */
+.progress-metrics {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 6px;
+}
+
+.summary-metric {
+  padding: 20px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.summary-metric svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.summary-metric span {
+  display: block;
+  color: var(--muted);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.summary-metric strong {
+  display: block;
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--text);
+  margin: 2px 0 1px;
+}
+
+.summary-metric em {
+  display: block;
+  color: var(--faint);
+  font-size: 9px;
+  font-style: normal;
+}
+
+.metric-body-weight-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.log-weight-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-hover);
+  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.log-weight-btn:hover {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+/* ── Weight Trend Section ── */
+.weight-trend-section {
+  margin-top: 24px;
+  padding: 26px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.log-weight-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 16px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.weight-chart-wrap {
+  margin-top: 20px;
+}
+
+/* ── Activity History Feed ── */
+.progress-history-section {
+  margin-top: 32px;
+}
+
+.section-header-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: var(--serif);
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--text);
+  margin: 3px 0 0;
+}
+
+.history-count {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.logs-feed-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.log-feed-item {
+  padding: 16px 20px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 140px 1.5fr 1fr auto;
+  align-items: center;
+  gap: 16px;
+  transition: border-color var(--transition-fast);
+}
+
+.log-feed-item:hover {
+  border-color: var(--line-strong);
+}
+
+.log-feed-time {
+  color: var(--faint);
+  font-size: 11px;
+}
+
+.log-feed-exercise {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.log-feed-exercise strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.log-feed-stats {
+  color: var(--muted);
+  font-size: 12px;
+  font-family: var(--sans);
+}
+
+.log-feed-notes {
+  color: var(--faint);
+  font-style: italic;
+  font-size: 11px;
   margin: 0;
 }
 
-.progress-page__subtitle {
-  color: var(--text-tertiary);
-  font-size: 0.9rem;
-  margin: 0;
-  max-width: 500px;
+.empty-history-card {
+  text-align: center;
+  padding: 56px 20px;
+  border-radius: var(--radius);
+  background: rgba(20, 23, 21, 0.4);
+  border: 1px dashed var(--line-strong);
 }
 
-.progress-page__stats {
+.empty-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--surface-hover);
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.empty-history-card h3 {
+  color: var(--text);
+  font-size: 16px;
+  margin: 0 0 6px;
+}
+
+.empty-history-card p {
+  color: var(--muted);
+  font-size: 12px;
+  max-width: 400px;
+  margin: 0 auto 18px;
+}
+
+.empty-action-btn {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+/* ── Modal & Drawer Styles ── */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  place-items: center;
+  padding: 16px;
 }
 
-.progress-page__charts {
+.weight-modal {
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.sheet-handle {
+  width: 38px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-strong);
+  margin: 0 auto 16px;
+}
+
+.sheet-heading h2 {
+  font-family: var(--serif);
+  font-size: 26px;
+  color: var(--text);
+  margin: 4px 0 16px;
+}
+
+.weight-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.weight-input-group label {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.weight-input-box {
+  display: flex;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0 16px;
+}
+
+.weight-input-box:focus-within {
+  border-color: var(--accent);
+}
+
+.weight-input-box input {
+  width: 100%;
+  min-height: 48px;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.weight-input-box span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.weight-input-group small {
+  display: block;
+  color: var(--faint);
+  font-size: 10px;
+  margin-top: 6px;
+}
+
+.weight-modal-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+  margin-top: 8px;
 }
 
-@media (max-width: 768px) {
-  .progress-page__charts {
+/* ── Responsive Adaptations ── */
+@media (max-width: 1080px) {
+  .progress-layout {
     grid-template-columns: 1fr;
+  }
+
+  .progress-metrics {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-.progress-page__section-title {
-  font-family: var(--font-heading);
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0 0 1rem 0;
-}
+@media (max-width: 680px) {
+  .progress-metrics {
+    grid-template-columns: 1fr;
+  }
 
-.progress-page__logs {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
+  .log-feed-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 
-.progress-page__log-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  font-size: 0.85rem;
-}
-
-.progress-page__log-date {
-  color: var(--text-tertiary);
-  font-size: 0.8rem;
-  min-width: 120px;
-}
-
-.progress-page__log-exercise {
-  font-weight: 600;
-  color: var(--text-primary);
-  min-width: 140px;
-}
-
-.progress-page__log-details {
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-.progress-page__log-notes {
-  color: var(--text-tertiary);
-  font-style: italic;
-  font-size: 0.8rem;
-  margin-left: auto;
+  .log-feed-time {
+    font-size: 10px;
+  }
 }

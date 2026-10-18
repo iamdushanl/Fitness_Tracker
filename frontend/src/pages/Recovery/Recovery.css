@@ -1,0 +1,377 @@
+/* ==========================================================================
+   FitTrack 2.0 — Recovery & Muscle Status (/recovery) Styles
+   ========================================================================== */
+
+.recovery-page {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding-bottom: 64px;
+}
+
+/* ── Recovery Intro & Controls ── */
+.recovery-intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin: 12px 0 28px;
+  gap: 20px;
+}
+
+.recovery-hero-heading {
+  font-family: var(--serif);
+  font-size: clamp(32px, 3.8vw, 44px);
+  line-height: 1.05;
+  font-weight: 400;
+  color: var(--text);
+  margin: 6px 0 0;
+}
+
+.recovery-intro-text {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+  margin-top: 10px;
+  max-width: 480px;
+}
+
+.recovery-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.recovery-tab-btn {
+  flex: 0 0 auto;
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 0 16px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.recovery-tab-btn:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.recovery-tab-btn.active {
+  background: var(--surface-hover);
+  color: var(--accent);
+  border-color: rgba(185, 243, 75, 0.3);
+}
+
+/* ── 2-Column Recovery Grid ── */
+.recovery-layout {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 16px;
+}
+
+/* ── Left: Biometric Body Visual Card ── */
+.body-visual-card {
+  min-height: 610px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, rgba(185, 243, 75, 0.055), transparent 45%),
+              var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.ambient-orb {
+  position: absolute;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  border: 1px solid rgba(185, 243, 75, 0.08);
+  box-shadow: 0 0 90px rgba(185, 243, 75, 0.04);
+  pointer-events: none;
+}
+
+.performance-body {
+  width: 220px;
+  height: 450px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  filter: drop-shadow(0 0 20px rgba(185, 243, 75, 0.08));
+  user-select: none;
+}
+
+.performance-head {
+  width: 58px;
+  height: 70px;
+  border-radius: 45% 45% 42% 42%;
+  background: linear-gradient(90deg, #465047, #758575, #465047);
+}
+
+.performance-neck {
+  width: 34px;
+  height: 24px;
+  background: #657165;
+}
+
+.performance-chest {
+  width: 126px;
+  height: 94px;
+  display: flex;
+  gap: 3px;
+  position: relative;
+  z-index: 2;
+}
+
+.performance-chest i {
+  flex: 1;
+  border-radius: 24px 24px 10px 10px;
+  background: linear-gradient(160deg, var(--accent), #53613a);
+  opacity: 0.84;
+}
+
+.performance-chest i.warm {
+  background: linear-gradient(160deg, var(--amber), #5c4e33);
+}
+
+.performance-chest i.tired {
+  background: linear-gradient(160deg, var(--danger), #5c3333);
+}
+
+.performance-core {
+  width: 70px;
+  height: 92px;
+  background: linear-gradient(#566156, #353b36);
+  border-radius: 8px 8px 15px 15px;
+}
+
+.performance-arms {
+  position: absolute;
+  top: 91px;
+  width: 190px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.performance-arms i {
+  width: 31px;
+  height: 180px;
+  border-radius: 22px;
+  background: linear-gradient(var(--amber), #414138);
+  opacity: 0.75;
+}
+
+.performance-arms i.ready {
+  background: linear-gradient(var(--accent), #42502f);
+}
+
+.performance-arms i.tired {
+  background: linear-gradient(var(--danger), #4a3434);
+}
+
+.performance-legs {
+  display: flex;
+  gap: 10px;
+}
+
+.performance-legs i {
+  width: 48px;
+  height: 162px;
+  border-radius: 13px 13px 25px 25px;
+  background: linear-gradient(#9a784d, #3d3b34);
+  opacity: 0.65;
+}
+
+.performance-legs i.ready {
+  background: linear-gradient(var(--accent), #3d4a34);
+}
+
+.performance-legs i.tired {
+  background: linear-gradient(var(--danger), #4a3434);
+}
+
+.body-legend {
+  position: absolute;
+  bottom: 22px;
+  display: flex;
+  gap: 18px;
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.body-legend span {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.body-legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.body-legend i.recovering {
+  background: var(--amber);
+}
+
+.body-legend i.fatigued {
+  background: var(--danger);
+}
+
+.body-legend i.detrained {
+  background: var(--faint);
+}
+
+/* ── Right: Muscle Status List & Score ── */
+.muscle-status-list {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.recovery-score {
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 22px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.recovery-score-title {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 400;
+  color: var(--text);
+  margin: 3px 0 4px;
+}
+
+.recovery-score-desc {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.muscle-status-row {
+  min-height: 72px;
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  transition: border-color var(--transition-fast);
+}
+
+.muscle-status-row:hover {
+  border-color: var(--line-strong);
+}
+
+.muscle-row-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.muscle-row-right {
+  display: grid;
+  grid-template-columns: 1fr 40px;
+  gap: 10px;
+  align-items: center;
+}
+
+.muscle-bar-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-hover);
+  overflow: hidden;
+}
+
+.muscle-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.muscle-bar-fill.warm {
+  background: var(--amber);
+}
+
+.muscle-bar-fill.tired {
+  background: var(--danger);
+}
+
+.muscle-percent {
+  font-size: 11px;
+  text-align: right;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.muscle-state-caption {
+  grid-column: 1 / -1;
+  color: var(--faint);
+  font-size: 10px;
+  padding-left: 18px;
+  margin-top: -6px;
+}
+
+.recovery-cta-box {
+  margin-top: 6px;
+}
+
+.recovery-start-workout-btn {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Responsive Adaptations ── */
+@media (max-width: 1020px) {
+  .recovery-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .body-visual-card {
+    min-height: 520px;
+  }
+
+  .recovery-intro {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 680px) {
+  .body-legend {
+    gap: 10px;
+    font-size: 8px;
+  }
+
+  .recovery-score {
+    flex-direction: column;
+    text-align: center;
+    gap: 14px;
+  }
+}

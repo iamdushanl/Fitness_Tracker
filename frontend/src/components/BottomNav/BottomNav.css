@@ -1,0 +1,349 @@
+/* ─────────────────────────────────────────────
+   FitTrack 2.0 — Mobile Bottom Navigation
+   Hidden on desktop (> 768px), 5 targets on mobile
+   ───────────────────────────────────────────── */
+
+.bottom-nav {
+  display: none;
+}
+
+.account-sheet-overlay {
+  display: none;
+}
+
+/* ── Mobile Layout (<= 768px) ── */
+@media (max-width: 768px) {
+  .bottom-nav {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
+    padding: 6px 4px max(6px, env(safe-area-inset-bottom, 0px));
+    background: rgba(12, 14, 13, 0.94);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    border-top: 1px solid var(--line);
+    z-index: 50;
+    user-select: none;
+  }
+
+  .bottom-nav__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 100%;
+    min-height: 48px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    color: var(--faint);
+    text-decoration: none;
+    cursor: pointer;
+    padding: 4px 2px;
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+
+  .bottom-nav__icon {
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+  }
+
+  .bottom-nav__label {
+    font-size: 9.5px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.1px;
+  }
+
+  /* Active & Pressed States */
+  .bottom-nav__item:hover {
+    color: var(--text);
+  }
+
+  .bottom-nav__item:active {
+    transform: scale(0.95);
+  }
+
+  .bottom-nav__item--active {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .bottom-nav__item--active .bottom-nav__icon {
+    transform: translateY(-1px);
+    filter: drop-shadow(0 0 8px rgba(185, 243, 75, 0.45));
+  }
+
+  .bottom-nav__item:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  /* ── Account Bottom Sheet Modal ── */
+  .account-sheet-overlay {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 90;
+    align-items: flex-end;
+    animation: overlay-fade 0.2s ease-out;
+  }
+
+  .account-sheet {
+    width: 100%;
+    max-height: 85vh;
+    background: #141715;
+    border-top: 1px solid var(--line-strong);
+    border-radius: 24px 24px 0 0;
+    padding: 16px 20px max(24px, env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.6);
+    overflow-y: auto;
+    animation: sheet-slide 0.25s var(--ease-out-quart);
+  }
+
+  @keyframes sheet-slide {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes overlay-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .account-sheet__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    padding-bottom: 14px;
+  }
+
+  .account-sheet__grabber {
+    width: 38px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(238, 242, 232, 0.2);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .account-sheet__close {
+    margin-left: auto;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--surface-hover);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .account-sheet__close:focus-visible {
+    outline: 2px solid var(--accent);
+  }
+
+  .account-sheet__hero {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 0 20px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .account-sheet__avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(145deg, #444c42, #1e221f);
+    border: 1.5px solid var(--line-strong);
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .account-sheet__avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .account-sheet__meta {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .account-sheet__name {
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .account-sheet__email {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+
+  .account-sheet__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-top: 6px;
+  }
+
+  .account-sheet__info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .account-sheet__info-card {
+    padding: 12px 14px;
+    background: var(--surface-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .account-sheet__info-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .account-sheet__info-val {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .account-sheet__coach-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    margin-top: 14px;
+    background: rgba(185, 243, 75, 0.06);
+    border: 1px solid rgba(185, 243, 75, 0.14);
+    border-radius: var(--radius-sm);
+  }
+
+  .account-sheet__tip-icon {
+    color: var(--accent);
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .account-sheet__tip-text {
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .account-sheet__actions {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .account-sheet__library-btn {
+    width: 100%;
+    min-height: 48px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--surface-hover);
+    border: 1px solid var(--line-strong);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.18s ease;
+  }
+
+  .account-sheet__library-btn:active {
+    transform: scale(0.98);
+  }
+
+  .account-sheet__signout-btn {
+    width: 100%;
+    min-height: 48px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: rgba(217, 121, 102, 0.12);
+    border: 1px solid rgba(217, 121, 102, 0.28);
+    color: var(--danger);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+
+  .account-sheet__signout-btn:active {
+    transform: scale(0.98);
+  }
+
+  .account-sheet__signout-btn:focus-visible {
+    outline: 2px solid var(--danger);
+    outline-offset: 2px;
+  }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .bottom-nav__item,
+  .bottom-nav__icon,
+  .account-sheet-overlay,
+  .account-sheet,
+  .account-sheet__signout-btn {
+    transition: none !important;
+    animation: none !important;
+  }
+}
