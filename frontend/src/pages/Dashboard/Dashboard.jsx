@@ -321,7 +321,7 @@ export default function Dashboard() {
               <SectionHeading
                 title="This week"
                 action="Open plan"
-                to="/create-plan"
+                to="/plan"
               />
 
               <div className="week-days" role="list" aria-label="7-day schedule">
@@ -509,7 +509,7 @@ export default function Dashboard() {
           <SectionHeading
             title="This week"
             action="Plan"
-            to="/create-plan"
+            to="/plan"
           />
           <div className="week-days" role="list">
             {weekDays.map((day, idx) => (
