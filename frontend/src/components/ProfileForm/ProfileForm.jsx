@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FITNESS_GOALS, normalizeGoal } from '../../lib/goals';
 import './ProfileForm.css';
 
 /**
@@ -14,7 +15,7 @@ export default function ProfileForm({ onSubmit, initialData = {} }) {
     height_cm: initialData.height_cm ?? '',
     weight_kg: initialData.weight_kg ?? '',
     experience_level: initialData.experience_level ?? '',
-    fitness_goal: initialData.fitness_goal ?? '',
+    fitness_goal: initialData.fitness_goal ? normalizeGoal(initialData.fitness_goal) : '',
   });
 
   const [errors, setErrors] = useState({});
@@ -49,7 +50,7 @@ export default function ProfileForm({ onSubmit, initialData = {} }) {
       height_cm: Number(form.height_cm),
       weight_kg: Number(form.weight_kg),
       experience_level: form.experience_level,
-      fitness_goal: form.fitness_goal,
+      fitness_goal: normalizeGoal(form.fitness_goal),
     });
   };
 
@@ -98,16 +99,14 @@ export default function ProfileForm({ onSubmit, initialData = {} }) {
       <div className="profile-form__group">
         <span className="profile-form__label">Fitness Goal</span>
         <div className="profile-form__options">
-          {[
-            { value: 'weight_loss', label: '🔥 Weight Loss' },
-            { value: 'muscle_gain', label: '💪 Muscle Gain' },
-            { value: 'general_fitness', label: '❤️ General Fitness' },
-            { value: 'endurance', label: '🏃 Endurance' },
-          ].map(({ value, label }) => (
-            <button key={value} type="button"
-              className={`profile-form__option ${form.fitness_goal === value ? 'profile-form__option--selected' : ''}`}
-              onClick={() => { handleChange({ target: { name: 'fitness_goal', value } }); }}>
-              {label}
+          {FITNESS_GOALS.map(({ id, label, icon }) => (
+            <button
+              key={id}
+              type="button"
+              className={`profile-form__option ${normalizeGoal(form.fitness_goal) === id ? 'profile-form__option--selected' : ''}`}
+              onClick={() => { handleChange({ target: { name: 'fitness_goal', value: id } }); }}
+            >
+              {icon} {label}
             </button>
           ))}
         </div>

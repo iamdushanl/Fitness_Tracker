@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { normalizeGoal } from './goals';
 
 /**
  * Fetch current authenticated user's profile from `public.users`.
@@ -24,7 +25,13 @@ export async function fetchUserProfile() {
   }
 
   if (data) {
-    return { data, error: null };
+    return {
+      data: {
+        ...data,
+        fitness_goal: normalizeGoal(data.fitness_goal),
+      },
+      error: null,
+    };
   }
 
   // Fallback profile derived from auth user
@@ -68,7 +75,7 @@ export async function saveUserProfile(profile) {
     height_cm: Number(profile.height_cm),
     weight_kg: Number(profile.weight_kg),
     experience_level: profile.experience_level,
-    fitness_goal: profile.fitness_goal,
+    fitness_goal: normalizeGoal(profile.fitness_goal),
     updated_at: new Date().toISOString(),
   };
 

@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { saveUserProfile, insertWeight } from './userProfile';
 import { EXERCISE_UUIDS, getExerciseById } from './exercises';
+import { normalizeGoal } from './goals';
 
 /**
  * Returns Monday to Sunday dates (YYYY-MM-DD) for the current week.
@@ -32,14 +33,52 @@ export function getCurrentWeekDates() {
  * Build 7-day scheduled exercises from goals and experience level.
  */
 function buildWeeklyScheduleTemplate(goal, level, dates) {
+  const normalizedGoal = normalizeGoal(goal);
+
+  // Goal-based parameter adjustments
+  let goalWeightMult = 1.0;
+  let goalCardioMult = 1.0;
+  let goalRepDelta = 0;
+
+  switch (normalizedGoal) {
+    case 'muscle_gain':
+      goalWeightMult = 1.1; // +10% target load for hypertrophy/progressive overload
+      goalRepDelta = -1;    // lower rep bias for strength intensity
+      goalCardioMult = 0.9; // focus energy on resistance volume
+      break;
+
+    case 'weight_loss':
+      goalWeightMult = 0.9;
+      goalRepDelta = 2;     // higher rep density for metabolic conditioning
+      goalCardioMult = 1.2; // +20% cardio duration and distance
+      break;
+
+    case 'endurance':
+      goalWeightMult = 0.85;
+      goalRepDelta = 3;     // muscular endurance rep range
+      goalCardioMult = 1.3; // +30% cardio duration and distance
+      break;
+
+    case 'general_fitness':
+    default:
+      goalWeightMult = 1.0;
+      goalRepDelta = 0;
+      goalCardioMult = 1.0;
+      break;
+  }
+
   // Multipliers based on experience level
   const setDelta = level === 'beginner' ? -1 : level === 'advanced' ? 1 : 0;
-  const weightMult = level === 'beginner' ? 0.75 : level === 'advanced' ? 1.25 : 1.0;
-  const cardioMult = level === 'beginner' ? 0.75 : level === 'advanced' ? 1.3 : 1.0;
+  const levelWeightMult = level === 'beginner' ? 0.75 : level === 'advanced' ? 1.25 : 1.0;
+  const levelCardioMult = level === 'beginner' ? 0.75 : level === 'advanced' ? 1.3 : 1.0;
+
+  const effectiveWeightMult = levelWeightMult * goalWeightMult;
+  const effectiveCardioMult = levelCardioMult * goalCardioMult;
 
   const s = (base) => Math.max(2, base + setDelta);
-  const w = (base) => Math.round(base * weightMult);
-  const c = (base) => Math.round(base * cardioMult);
+  const r = (base) => Math.max(6, base + goalRepDelta);
+  const w = (base) => Math.round(base * effectiveWeightMult);
+  const c = (base) => Math.round(base * effectiveCardioMult);
 
   return [
     // ── Day 0 (Monday) — Upper Body Push ──
@@ -48,7 +87,7 @@ function buildWeeklyScheduleTemplate(goal, level, dates) {
       exercise_order: 1,
       exercise_id: EXERCISE_UUIDS['ex-002'], // Bench Press
       target_sets: s(4),
-      target_reps: 10,
+      target_reps: r(10),
       target_weight_kg: w(60),
       target_duration_min: null,
       target_distance_km: null,
@@ -58,7 +97,7 @@ function buildWeeklyScheduleTemplate(goal, level, dates) {
       exercise_order: 2,
       exercise_id: EXERCISE_UUIDS['ex-004'], // Overhead Press
       target_sets: s(3),
-      target_reps: 10,
+      target_reps: r(10),
       target_weight_kg: w(35),
       target_duration_min: null,
       target_distance_km: null,
@@ -68,7 +107,7 @@ function buildWeeklyScheduleTemplate(goal, level, dates) {
       exercise_order: 3,
       exercise_id: EXERCISE_UUIDS['ex-008'], // Tricep Extension
       target_sets: s(3),
-      target_reps: 12,
+      target_reps: r(12),
       target_weight_kg: w(15),
       target_duration_min: null,
       target_distance_km: null,
@@ -83,7 +122,7 @@ function buildWeeklyScheduleTemplate(goal, level, dates) {
       target_reps: null,
       target_weight_kg: null,
       target_duration_min: c(30),
-      target_distance_km: Number((5 * cardioMult).toFixed(1)),
+      target_distance_km: Number((5 * effectiveCardioMult).toFixed(1)),
     },
     {
       scheduled_date: dates[1],
@@ -102,7 +141,7 @@ function buildWeeklyScheduleTemplate(goal, level, dates) {
       exercise_order: 1,
       exercise_id: EXERCISE_UUIDS['ex-001'], // Barbell Squat
       target_sets: s(4),
-      target_reps: 8,
+      target_reps: r(8),
       target_weight_kg: w(80),
       target_duration_min: null,
       target_distance_km: null,
@@ -112,7 +151,7 @@ function buildWeeklyScheduleTemplate(goal, level, dates) {
       exercise_order: 2,
       exercise_id: EXERCISE_UUIDS['ex-003'], // Deadlift
       target_sets: s(3),
-      target_reps: 8,
+      target_reps: r(8),
       target_weight_kg: w(90),
       target_duration_min: null,
       target_distance_km: null,
@@ -122,7 +161,7 @@ function buildWeeklyScheduleTemplate(goal, level, dates) {
       exercise_order: 3,
       exercise_id: EXERCISE_UUIDS['ex-006'], // Lunge
       target_sets: s(3),
-      target_reps: 12,
+      target_reps: r(12),
       target_weight_kg: w(20),
       target_duration_min: null,
       target_distance_km: null,
@@ -136,7 +175,7 @@ function buildWeeklyScheduleTemplate(goal, level, dates) {
       exercise_order: 1,
       exercise_id: EXERCISE_UUIDS['ex-005'], // Barbell Row
       target_sets: s(4),
-      target_reps: 10,
+      target_reps: r(10),
       target_weight_kg: w(55),
       target_duration_min: null,
       target_distance_km: null,
@@ -146,7 +185,7 @@ function buildWeeklyScheduleTemplate(goal, level, dates) {
       exercise_order: 2,
       exercise_id: EXERCISE_UUIDS['ex-010'], // Lat Pulldown
       target_sets: s(3),
-      target_reps: 12,
+      target_reps: r(12),
       target_weight_kg: w(45),
       target_duration_min: null,
       target_distance_km: null,
@@ -156,7 +195,7 @@ function buildWeeklyScheduleTemplate(goal, level, dates) {
       exercise_order: 3,
       exercise_id: EXERCISE_UUIDS['ex-007'], // Bicep Curl
       target_sets: s(3),
-      target_reps: 12,
+      target_reps: r(12),
       target_weight_kg: w(14),
       target_duration_min: null,
       target_distance_km: null,
@@ -171,7 +210,7 @@ function buildWeeklyScheduleTemplate(goal, level, dates) {
       target_reps: null,
       target_weight_kg: null,
       target_duration_min: c(30),
-      target_distance_km: Number((3 * cardioMult).toFixed(1)),
+      target_distance_km: Number((3 * effectiveCardioMult).toFixed(1)),
     },
     {
       scheduled_date: dates[5],
@@ -227,8 +266,15 @@ export async function createWorkoutPlan(profileData) {
     return { data: null, error: { message: 'You must be signed in to create a workout plan.' } };
   }
 
+  const normalizedGoal = normalizeGoal(profileData.fitness_goal);
+  const normalizedLevel = profileData.experience_level || 'intermediate';
+
   // 1. Save user profile
-  const { error: profileError } = await saveUserProfile(profileData);
+  const { error: profileError } = await saveUserProfile({
+    ...profileData,
+    fitness_goal: normalizedGoal,
+    experience_level: normalizedLevel,
+  });
   if (profileError) {
     console.error('Failed to save profile to Supabase:', profileError);
     return { data: null, error: profileError };
@@ -251,8 +297,8 @@ export async function createWorkoutPlan(profileData) {
       user_id: user.id,
       week_start_date,
       week_end_date,
-      template_goal: profileData.fitness_goal,
-      template_level: profileData.experience_level,
+      template_goal: normalizedGoal,
+      template_level: normalizedLevel,
     })
     .select()
     .single();
@@ -264,8 +310,8 @@ export async function createWorkoutPlan(profileData) {
 
   // 4. Generate and insert plan exercises
   const templateExercises = buildWeeklyScheduleTemplate(
-    profileData.fitness_goal,
-    profileData.experience_level,
+    normalizedGoal,
+    normalizedLevel,
     dates
   );
 

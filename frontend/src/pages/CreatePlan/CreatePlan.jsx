@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProfileForm from '../../components/ProfileForm/ProfileForm';
 import { createWorkoutPlan } from '../../lib/plans';
+import { getGoalLabel } from '../../lib/goals';
 import StateScreen from '../../components/StateScreen/StateScreen';
 import './CreatePlan.css';
 
@@ -69,7 +70,7 @@ export default function CreatePlan() {
           <span className="create-plan__success-icon">🎉</span>
           <h2 className="create-plan__success-title">Plan Generated & Saved!</h2>
           <p className="create-plan__success-text">
-            Your <strong>{profile?.fitness_goal.replaceAll('_', ' ')}</strong> plan for
+            Your <strong>{getGoalLabel(profile?.fitness_goal)}</strong> plan for
             a <strong>{profile?.experience_level}</strong> is now live in Supabase.
             Redirecting to your workout…
           </p>
