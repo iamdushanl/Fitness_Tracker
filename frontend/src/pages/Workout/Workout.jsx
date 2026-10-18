@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  AlertCircle,
   ArrowRight,
   Check,
   ChevronLeft,
@@ -33,6 +34,7 @@ export default function Workout() {
   const [setRows, setSetRows] = useState({}); // { [planExerciseId]: [ { weight_kg, reps, done: bool, logId: string } ] }
   const [resting, setResting] = useState(false);
   const [sessionFinished, setSessionFinished] = useState(false);
+  const [showEmptyGuard, setShowEmptyGuard] = useState(false);
 
   const loadData = useCallback(async (showSpinner = false) => {
     if (showSpinner) {
@@ -82,7 +84,9 @@ export default function Workout() {
     loadData();
   }, [loadData]);
 
-  const exercises = (selectedDate && weekSchedule[selectedDate]) ? weekSchedule[selectedDate] : [];
+  const exercises = useMemo(() => {
+    return (selectedDate && weekSchedule[selectedDate]) ? weekSchedule[selectedDate] : [];
+  }, [selectedDate, weekSchedule]);
   const isRestDay = exercises.length === 0;
 
   const currentPlanExercise = exercises[currentExerciseIndex] || exercises[0] || null;
@@ -90,39 +94,53 @@ export default function Workout() {
     ? (currentPlanExercise.exercise || getExerciseById(currentPlanExercise.exercise_id))
     : null;
 
-  // Initialize set rows for current exercise
+  // Initialize set rows for session exercises
   useEffect(() => {
-    if (!currentPlanExercise) return;
+    if (!exercises || exercises.length === 0) return;
 
     setSetRows((prev) => {
-      if (prev[currentPlanExercise.id]) return prev;
+      let changed = false;
+      const next = { ...prev };
 
-      const numSets = currentPlanExercise.target_sets ?? 3;
-      const initialWeight = currentPlanExercise.target_weight_kg ?? 20;
-      const initialReps = currentPlanExercise.target_reps ?? 10;
+      exercises.forEach((planEx) => {
+        if (!planEx || next[planEx.id]) return;
 
-      // Check if any sets were already logged in localLogs for this exercise
-      const alreadyLogged = localLogs.filter(
-        (l) => l.plan_exercise_id === currentPlanExercise.id
-      );
+        changed = true;
+        const numSets = planEx.target_sets ?? 3;
+        const initialWeight = planEx.target_weight_kg ?? 20;
+        const initialReps = planEx.target_reps ?? 10;
 
-      const rows = Array.from({ length: numSets }, (_, i) => {
-        const log = alreadyLogged[i];
-        return {
-          setNumber: i + 1,
-          weight_kg: log?.actual_weight_kg ?? initialWeight,
-          reps: log?.actual_reps ?? initialReps,
-          done: Boolean(log),
-          logId: log?.id ?? null,
-        };
+        const alreadyLogged = (localLogs || []).filter(
+          (l) => l.plan_exercise_id === planEx.id
+        );
+
+        next[planEx.id] = Array.from({ length: numSets }, (_, i) => {
+          const log = alreadyLogged[i];
+          return {
+            setNumber: i + 1,
+            weight_kg: log?.actual_weight_kg ?? initialWeight,
+            reps: log?.actual_reps ?? initialReps,
+            done: Boolean(log),
+            logId: log?.id ?? null,
+          };
+        });
       });
 
-      return {
-        ...prev,
-        [currentPlanExercise.id]: rows,
-      };
+      return changed ? next : prev;
     });
-  }, [currentPlanExercise, localLogs]);
+  }, [exercises, localLogs]);
+
+  // Handle ESC key to dismiss empty-guard dialog
+  useEffect(() => {
+    if (!showEmptyGuard) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowEmptyGuard(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showEmptyGuard]);
 
   const currentRows = (currentPlanExercise && setSetRows && setRows[currentPlanExercise.id])
     ? setRows[currentPlanExercise.id]
@@ -220,11 +238,20 @@ export default function Workout() {
 
   // Total session set progress
   const totalSets = exercises.reduce((acc, ex) => acc + (ex.target_sets ?? 3), 0);
-  const completedSets = Object.values(setRows).reduce(
-    (acc, rows) => acc + rows.filter((r) => r.done).length,
+  const completedSets = Object.values(setRows || {}).reduce(
+    (acc, rows) => acc + (Array.isArray(rows) ? rows.filter((r) => Boolean(r?.done)).length : 0),
     0
   );
   const sessionProgressPercent = totalSets > 0 ? Math.min(100, Math.round((completedSets / totalSets) * 100)) : 0;
+
+  // Guard finish handler
+  const handleFinishWorkout = () => {
+    if (completedSets === 0) {
+      setShowEmptyGuard(true);
+      return;
+    }
+    setSessionFinished(true);
+  };
 
   // Next upcoming exercise preview
   const nextPlanExercise = exercises[currentExerciseIndex + 1] || null;
@@ -379,7 +406,7 @@ export default function Workout() {
               <button
                 type="button"
                 className="workout-finish-btn"
-                onClick={() => setSessionFinished(true)}
+                onClick={handleFinishWorkout}
                 title="Finish workout"
                 aria-label="Finish workout session"
               >
@@ -586,6 +613,49 @@ export default function Workout() {
           nextExercise={nextExercise}
           initialSeconds={90}
         />
+      )}
+
+      {/* ── Empty Workout Guard Confirmation Dialog ── */}
+      {showEmptyGuard && (
+        <div
+          className="empty-guard-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="empty-guard-title"
+          onClick={() => setShowEmptyGuard(false)}
+        >
+          <div
+            className="card empty-guard-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="empty-guard-icon" aria-hidden="true">
+              <AlertCircle size={32} />
+            </div>
+            <span className="eyebrow">NO SETS LOGGED</span>
+            <h3 id="empty-guard-title" className="empty-guard-title">
+              Finish Workout?
+            </h3>
+            <p className="empty-guard-desc">
+              No working sets have been logged yet. Log at least one set to finish this workout, or leave without completing it.
+            </p>
+            <div className="empty-guard-actions">
+              <button
+                type="button"
+                className="primary-button"
+                onClick={() => setShowEmptyGuard(false)}
+              >
+                Continue workout
+              </button>
+              <Link
+                to="/"
+                className="secondary-button"
+                onClick={() => setShowEmptyGuard(false)}
+              >
+                Leave without completing
+              </Link>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
